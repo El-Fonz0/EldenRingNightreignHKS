@@ -13,13 +13,13 @@
 --              - Ported SwordArtsCategory, SwordArtPutOppositeWeapon and MagicPutOppositeWeapon from common_define.hks conform with the ER HKS
 --              - Renamed all SwordArtsCategory entries for clarity
 --              - Ported the Contains function from the Elden Ring Community HKS
---              - Cleaned up a bunch of f0_localX variables and functions that made it hard to read
 ------------------------------------------
 -- Known issues:
 -- N/A
 
 -- To-Do:
 -- Identify Unknown env and act calls
+-- Fix a bunch of f0_localX things
 -- Code Cleanup
 -- Add more comments
 
