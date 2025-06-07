@@ -20400,24 +20400,156 @@ function Update()
     g_FrameCount = g_FrameCount + 1
 end
 
-local f0_local3 = {}
+local f0_local4 = {}
+local f0_local5 = hkVector4.new(-0.029837800189852715, 0.0026084301061928272, 0.0031328098848462105, 0)
+local f0_local6 = hkQuaternion.new(3.537859925017983E-07, 0, 6.53787992632715E-07, 1)
+local f0_local7 = hkVector4.new(0.14140300452709198, 0.00343983992934227, 0.016963999718427658, 0)
+local f0_local8 = hkQuaternion.new(-0.016669899225234985, 0.20554399490356445, -0.009822160005569458, 0.978456974029541)
+f0_local4 = f0_local5
+f0_local5 = {}
+f0_local6 = hkVector4
+f0_local7 = "new"
+f0_local6 = f0_local6[f0_local7]
+f0_local7 = -0.027215100824832916
+f0_local8 = 0.005970839876681566
+f0_local6 = f0_local6(f0_local7, f0_local8, 0.037929099053144455, 0)
+f0_local7 = hkQuaternion
+f0_local8 = "new"
+f0_local7 = f0_local7[f0_local8]
+f0_local8 = -0.04239889979362488
+f0_local7 = f0_local7(f0_local8, -0.07309190183877945, 0.00019104100647382438, 0.9964240193367004)
+f0_local8 = hkVector4
+f0_local8 = f0_local8.new
+f0_local8 = f0_local8(0.1320199966430664, 0.007690909784287214, 0.07055039703845978, 0)
+local f0_local9 = hkQuaternion.new(-0.0422758013010025, 0.24880200624465942, 0.010026199743151665, 0.9675790071487427)
+f0_local5 = f0_local6
+f0_local6 = {}
+f0_local7 = hkVector4
+f0_local8 = "new"
+f0_local7 = f0_local7[f0_local8]
+f0_local8 = -0.061542101204395294
+f0_local9 = 0.002855780068784952
+f0_local7 = f0_local7(f0_local8, f0_local9, 0.11534000188112259, 0)
+f0_local8 = hkQuaternion
+f0_local9 = "new"
+f0_local8 = f0_local8[f0_local9]
+f0_local9 = -0.006716299802064896
+f0_local8 = f0_local8(f0_local9, -0.006285639945417643, -0.01002930011600256, 0.9999070167541504)
+f0_local9 = hkVector4
+f0_local9 = f0_local9.new
+f0_local9 = f0_local9(0.08255569636821747, 0.0020317400339990854, -0.08100569993257523, 0)
+local f0_local10 = hkQuaternion.new(0.0012848000042140484, -0.13232800364494324, 0.017779000103473663, 0.9910460114479065)
+f0_local6 = f0_local7
+f0_local7 = {}
+f0_local8 = hkVector4
+f0_local9 = "new"
+f0_local8 = f0_local8[f0_local9]
+f0_local9 = -0.1130400002002716
+f0_local10 = 0.0039494698867201805
+f0_local8 = f0_local8(f0_local9, f0_local10, 0.019797800108790398, 0)
+f0_local9 = hkQuaternion
+f0_local10 = "new"
+f0_local9 = f0_local9[f0_local10]
+f0_local10 = -0.021739499643445015
+f0_local9 = f0_local9(f0_local10, 0.11296600103378296, -0.00495699979364872, 0.993349015712738)
+f0_local10 = hkVector4
+f0_local10 = f0_local10.new
+f0_local10 = f0_local10(0.2304919958114624, 0.012231799773871899, 0.04108110070228577, 0)
+local f0_local11 = hkQuaternion.new(-0.06475979834794998, 0.06905680149793625, 0.004534970037639141, 0.99549800157547)
+f0_local7 = f0_local8
+f0_local8 = {}
+f0_local9 = hkVector4
+f0_local10 = "new"
+f0_local9 = f0_local9[f0_local10]
+f0_local10 = 0.034283701330423355
+f0_local11 = 0.00023359799524769187
+f0_local9 = f0_local9(f0_local10, f0_local11, 0.06506600230932236, 0)
+f0_local10 = hkQuaternion
+f0_local11 = "new"
+f0_local10 = f0_local10[f0_local11]
+f0_local11 = -2.5148199256364023E-06
+f0_local10 = f0_local10(f0_local11, -0.04408159852027893, -2.854329977708403E-06, 0.9990280270576477)
+f0_local11 = hkVector4
+f0_local11 = f0_local11.new
+f0_local11 = f0_local11(0.003081680042669177, 0.00023990099725779146, -0.023486200720071793, 0)
+local f0_local12 = hkQuaternion.new(-3.275499921073788E-06, 0.010891900397837162, -3.6277199342293898E-06, 0.9999409914016724)
+f0_local8 = f0_local9
+f0_local9 = {}
+f0_local10 = hkVector4
+f0_local11 = "new"
+f0_local10 = f0_local10[f0_local11]
+f0_local11 = -0.17718400061130524
+f0_local12 = 0.009341370314359665
+f0_local10 = f0_local10(f0_local11, f0_local12, 0.09603279829025269, 0)
+f0_local11 = hkQuaternion
+f0_local12 = "new"
+f0_local11 = f0_local11[f0_local12]
+f0_local12 = -0.032704100012779236
+f0_local11 = f0_local11(f0_local12, 0.0297084990888834, -0.03663109987974167, 0.9983519911766052)
+f0_local12 = hkVector4
+f0_local12 = f0_local12.new
+f0_local12 = f0_local12(0.21090899407863617, 0.014778399839997292, -0.03690379858016968, 0)
+local f0_local13 = hkQuaternion.new(-0.029983000829815865, -0.03943770006299019, 0.03369240090250969, 0.9982039928436279)
+f0_local9 = f0_local10
+f0_local10 = {}
+f0_local11 = hkVector4
+f0_local12 = "new"
+f0_local11 = f0_local11[f0_local12]
+f0_local12 = -0.18238000571727753
+f0_local13 = -0.00011849399743368849
+f0_local11 = f0_local11(f0_local12, f0_local13, 0.07893739640712738, 0)
+f0_local12 = hkQuaternion
+f0_local13 = "new"
+f0_local12 = f0_local12[f0_local13]
+f0_local13 = 0.0009554679854772985
+f0_local12 = f0_local12(f0_local13, 0.07557240128517151, -0.05242900177836418, 0.995760977268219)
+f0_local13 = hkVector4
+f0_local13 = f0_local13.new
+f0_local13 = f0_local13(0.24793699383735657, 0.012888199649751186, -0.009000290185213089, 0)
+local f0_local14 = hkQuaternion.new(-0.036021798849105835, 0.1662759929895401, 0.0345769003033638, 0.9848139882087708)
+f0_local10 = f0_local11
+f0_local11 = {}
+f0_local12 = hkVector4
+f0_local13 = "new"
+f0_local12 = f0_local12[f0_local13]
+f0_local13 = -0.036492299288511276
+f0_local14 = -3.628430022217799E-06
+f0_local12 = f0_local12(f0_local13, f0_local14, 0.08864530175924301, 0)
+f0_local13 = hkQuaternion
+f0_local14 = "new"
+f0_local13 = f0_local13[f0_local14]
+f0_local14 = -6.655079778283834E-05
+f0_local13 = f0_local13(f0_local14, -0.10118000209331512, 0.0003778169921133667, 0.9948679804801941)
+f0_local14 = hkVector4
+f0_local14 = f0_local14.new
+f0_local14 = f0_local14(0.03545650094747543, 0.005778490100055933, -0.06667689979076385, 0)
+local f0_local15 = hkQuaternion.new(-0.01346690021455288, -0.10250599682331085, 0.019817300140857697, 0.9944440126419067)
+-- Work in progress to decode this mess. Thought I had it but appearantly not. Feel try to try shit
 heroFootOffsetTables = {
     -- Wylder
-    [HERO_BALANCE] = hkVector4.new(-0.029837800189852715, 0.0026084301061928272, 0.0031328098848462105, 0),
+    [HERO_BALANCE] = f0_local4,
+    -- [HERO_BALANCE] = hkVector4.new(-0.029837800189852715, 0.0026084301061928272, 0.0031328098848462105, 0),
     -- Guardian
-    [HERO_TANK] = hkVector4.new(-0.027215100824832916, 0.005970839876681566, 0.037929099053144455, 0),
+    [HERO_TANK] = f0_local5,
+    -- [HERO_TANK] = hkVector4.new(-0.027215100824832916, 0.005970839876681566, 0.037929099053144455, 0),
     -- Ironeye
-    [HERO_SHOOTER] = hkVector4.new(-0.061542101204395294, 0.002855780068784952, 0.11534000188112259, 0),
+    [HERO_SHOOTER] = f0_local6,
+    -- [HERO_SHOOTER] = hkVector4.new(-0.061542101204395294, 0.002855780068784952, 0.11534000188112259, 0),
     -- Duchess
-    [HERO_SPEED] = hkVector4.new(-0.1130400002002716, 0.0039494698867201805, 0.019797800108790398, 0),
+    [HERO_SPEED] = f0_local7,
+    -- [HERO_SPEED] = hkVector4.new(-0.1130400002002716, 0.0039494698867201805, 0.019797800108790398, 0),
     -- Raider
-    [HERO_POWER] = hkVector4.new(0.034283701330423355, 0.00023359799524769187, 0.06506600230932236, 0),
+    [HERO_POWER] = f0_local8,
+    -- [HERO_POWER] = hkVector4.new(0.034283701330423355, 0.00023359799524769187, 0.06506600230932236, 0),
     -- Revenant
-    [HERO_NECROMANCER] = hkVector4.new(-0.17718400061130524, 0.009341370314359665, 0.09603279829025269, 0),
+    [HERO_NECROMANCER] = f0_local9,
+    -- [HERO_NECROMANCER] = hkVector4.new(-0.17718400061130524, 0.009341370314359665, 0.09603279829025269, 0),
     -- Recluse 
-    [HERO_MAGIC] = hkVector4.new(-0.18238000571727753, -0.00011849399743368849, 0.07893739640712738, 0),
+    [HERO_MAGIC] = f0_local10,
+    -- [HERO_MAGIC] = hkVector4.new(-0.18238000571727753, -0.00011849399743368849, 0.07893739640712738, 0),
     -- Executor
-    [HERO_TECHNICAL] = hkVector4.new(-0.036492299288511276, -3.628430022217799E-06, 0.08864530175924301, 0)
+    [HERO_TECHNICAL] = f0_local12,
+    -- [HERO_TECHNICAL] = hkVector4.new(-0.036492299288511276, -3.628430022217799E-06, 0.08864530175924301, 0)
 }
 
 function CopyLocalMatrix(source, dest)
@@ -28402,8 +28534,8 @@ global = {}
 function dummy()
 end
 
-f0_local3.__index = function (table, element)
+global.__index = function (table, element)
     return dummy
 end
 
-f0_local3(_G, global)
+setmetatable(_G, global)
