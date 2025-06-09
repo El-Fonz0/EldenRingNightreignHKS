@@ -2458,7 +2458,7 @@ function ExecAttack(r1, r2, l1, l2, b1, b2, is_guard, blend_type, artsr1, artsr2
             ExecEventHalfBlend(Event_NecromanceModeStart, blend_type)
         elseif env(GetHeroID) == HERO_MAGIC then
             SetVariable("IndexElementalAbsorption", 1)
-            if env(Unknown383) == 3 then
+            if env(GetMagicCocktailAffinityCount) == 3 then
                 ExecCreateMagic(QUICKTYPE_NORMAL, ALLBODY, FALSE)
             elseif env(GetSpEffectID, 706010) == TRUE then
                 ExecEventHalfBlend(Event_ElementalAbsorption2Start, blend_type)
@@ -20306,7 +20306,7 @@ function Update()
             SetVariable("AddDemonSwordModeBlendSelector", 0)
         end
     end
-    if env(GetHeroID) == HERO_MAGIC and env(Unknown383) == 3 and env(GetSpEffectID, 603060) == FALSE then
+    if env(GetHeroID) == HERO_MAGIC and env(GetMagicCocktailAffinityCount) == 3 and env(GetSpEffectID, 603060) == FALSE then
         act(AddSpEffect, 603060)
     end
     if env(GetSpiritspringJumpHeight) > 0 then
@@ -28877,7 +28877,7 @@ Unknown378 = 378
 Unknown380 = 380 -- args: <unknown>
 Unknown381 = 381 -- args: <unknown>
 Unknown382 = 382
-Unknown383 = 383
+GetMagicCocktailAffinityCount = 383
 Unknown384 = 384
 Unknown388 = 388
 Unknown389 = 389
