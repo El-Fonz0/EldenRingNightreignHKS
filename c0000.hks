@@ -3,10 +3,10 @@
 -- Decompiled using the DSLuaDecompiler by ElaDiDu (fork from original by katalash)
 -- Curated at: https://github.com/ividyon/EldenRingHKS
 ------------------------------------------
--- Version 1 (For ER:NR HKS last updated in 1.01.1)
+-- Version 2 (For ER:NR HKS last updated in 1.01.1)
 ------------------------------------------
 -- Changelog:
--- 2025-07-06 - Exelot: Initial Release
+-- 2025-06-07 - Exelot: Initial Release
 --              - All env calls and act calls are replaced with their named counterparts
 --              - Notated all new Unknown env and act calls
 --              - Minor code cleanup
@@ -14,11 +14,13 @@
 --              - Renamed all SwordArtsCategory entries for clarity
 --              - Ported the Contains function from the Elden Ring Community HKS
 --              - Cleaned up a bunch of f0_localX variables and functions that made it hard to read
+-- 2025-06-07 - Exelot: Renamed env Unknown383 to GetMagicCocktailAffinityCount and fixed a bug with the function GetEquipType
 ------------------------------------------
 -- Known issues:
 -- N/A
 
 -- To-Do:
+-- Fixed the f0_local3 functions
 -- Identify Unknown env and act calls
 -- Code Cleanup
 -- Add more comments
@@ -302,6 +304,7 @@ function GetEquipType(hand, ...)
     local buff = {...}
     local kind = {}
     local num = 1
+
     if hand == HAND_BOTH then
         kind[1] = env(GetEquipWeaponCategory, HAND_LEFT)
         kind[2] = env(GetEquipWeaponCategory, HAND_RIGHT)
@@ -309,13 +312,15 @@ function GetEquipType(hand, ...)
     else
         kind[1] = env(GetEquipWeaponCategory, hand)
     end
+    
     for i = 1, num, 1 do
-        for i = 1, #buff, 1 do
-            if kind[f31_local3] == buff[i] then
+        for j = 1, #buff, 1 do
+            if kind[i] == buff[j] then
                 return TRUE
             end
         end
     end
+
     return FALSE
 end
 
@@ -20419,7 +20424,6 @@ heroFootOffsetTables = {
     -- Executor
     [HERO_TECHNICAL] = hkVector4.new(-0.036492299288511276, -3.628430022217799E-06, 0.08864530175924301, 0)
 }
-heroFootOffsetTables = f0_local3
 
 f0_local3 = function (source, dest)
     local sourceMatrix = hkbGetBoneLocalSpace(source)
