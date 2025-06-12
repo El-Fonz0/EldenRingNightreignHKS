@@ -14,7 +14,9 @@
 --              - Renamed all SwordArtsCategory entries for clarity
 --              - Ported the Contains function from the Elden Ring Community HKS
 --              - Cleaned up a bunch of f0_localX variables and functions that made it hard to read
--- 2025-06-07 - Exelot: Renamed env Unknown383 to GetMagicCocktailAffinityCount and fixed a bug with the function GetEquipType
+-- 2025-06-07 - Exelot: 
+--              - Renamed env Unknown383 to GetMagicCocktailAffinityCount ( Thanks to ivi )
+--              - Fixed a bug with the function GetEquipType ( Thanks to VIZZO )
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -1584,6 +1586,7 @@ function GetAttackRequest(is_guard)
     if style == HAND_LEFT_BOTH then
         hand = HAND_LEFT
     end
+
     local is_arrow = GetEquipType(hand, WEAPON_CATEGORY_SMALL_ARROW, WEAPON_CATEGORY_ARROW, WEAPON_CATEGORY_LARGE_ARROW)
     local is_large_arrow = GetEquipType(hand, WEAPON_CATEGORY_LARGE_ARROW)
     local is_crossbow = GetEquipType(hand, WEAPON_CATEGORY_CROSSBOW)
@@ -1597,8 +1600,10 @@ function GetAttackRequest(is_guard)
     local request_r2 = env(ActionRequest, ACTION_ARM_R2)
     local request_l1 = env(ActionRequest, ACTION_ARM_L1)
     local request_l2 = env(ActionRequest, ACTION_ARM_L2)
+
     if env(ActionDuration, ACTION_ARM_ACTION) > 0 then
     end
+
     if request_r1 == TRUE and is_staff == FALSE then
         if is_both == TRUE then
             if is_arrow == TRUE then
@@ -1918,6 +1923,8 @@ function ExecAttack(r1, r2, l1, l2, b1, b2, is_guard, blend_type, artsr1, artsr2
         swordartpoint_hand = HAND_LEFT
     end
     act(SetDamageMotionBlendRatio, 0)
+
+    -- Animation Jump Tables
     if env(GetSpEffectID, 102001) == TRUE then
         r1 = "W_AttackRightLightDash"
         r2 = "W_AttackRightHeavyDash"
@@ -1949,6 +1956,8 @@ function ExecAttack(r1, r2, l1, l2, b1, b2, is_guard, blend_type, artsr1, artsr2
             b2 = "W_AttackBothHeavy1Start"
         end
     end
+
+    -- Guard Counters 
     if env(GetSpEffectID, 173) == TRUE or env(GetSpEffectID, 174) == TRUE then
         if c_Style == HAND_RIGHT_BOTH then
             atk_hand = HAND_RIGHT
@@ -1959,7 +1968,7 @@ function ExecAttack(r1, r2, l1, l2, b1, b2, is_guard, blend_type, artsr1, artsr2
         end
         if GetEquipType(atk_hand, WEAPON_CATEGORY_STAFF, WEAPON_CATEGORY_SMALL_ARROW, WEAPON_CATEGORY_ARROW, WEAPON_CATEGORY_LARGE_ARROW, WEAPON_CATEGORY_CROSSBOW, WEAPON_CATEGORY_BALLISTA) == FALSE and env(ActionRequest, ACTION_ARM_R2) == TRUE then
             if c_Style == HAND_RIGHT_BOTH or c_Style == HAND_LEFT_BOTH then
-                if GetEquipType(atk_hand, WEAPON_CATEGORY_HALBERD) == TRUE and env(GetHeroID) == HERO_TANK then
+                if GetEquipType(atk_hand, WEAPON_CATEGORY_HALBERD) == TRUE and env(GetHeroID) == HERO_TANK then -- Guardian Unique Halberd Charged Guard Counter
                     ExecEventAllBody("W_AttackBothHeavyCounterStart")
                 else
                     ExecEventAllBody("W_AttackBothHeavyCounter")
@@ -1975,9 +1984,11 @@ function ExecAttack(r1, r2, l1, l2, b1, b2, is_guard, blend_type, artsr1, artsr2
             return FALSE
         end
     end
+
     if env(GetSpEffectID, 100630) == TRUE and ExecFallAttack() == TRUE then
         return TRUE
     end
+
     if request == ATTACK_REQUEST_RIGHT_LIGHT then
         if artsr1 == TRUE then
             SetSwordArtsPointInfo(ACTION_ARM_R1, TRUE, r1)
@@ -2589,7 +2600,7 @@ function ExecAttack(r1, r2, l1, l2, b1, b2, is_guard, blend_type, artsr1, artsr2
                 ExecEventHalfBlend(Event_AttackArrowBothFireHeavy1Start, blend_type)
             end
         end
-    elseif request == ATTACK_REQUEST_ARROW_TPSMODE then
+    elseif request == ATTACK_REQUEST_ARROW_TPSMODE then -- TPS Mode = Third Person Shooter Mode
         is_find_atk = FALSE
         if style == HAND_RIGHT_BOTH then
             ExecEventHalfBlend(Event_AttackArrowRightStart, blend_type)
@@ -6955,7 +6966,7 @@ end
 
 function IdleCommonFunction()
     act(Unknown2080)
-    if env(Unknown378) == TRUE then
+    if env(HasDodgedThrowAttack) == TRUE then
         ExecEvent("W_ThrowCounter")
         return TRUE
     end
@@ -7526,7 +7537,7 @@ function EvasionCommonFunction(fall_type, r1, r2, l1, l2, b1, b2, quick_type, ge
     if ExecPassiveAction(FALSE, fall_type, FALSE, FALSE) == TRUE then
         return TRUE
     end
-    if env(Unknown378) == TRUE then
+    if env(HasDodgedThrowAttack) == TRUE then
         ExecEvent("W_ThrowCounter")
         return TRUE
     end
@@ -28877,7 +28888,7 @@ Unknown373 = 373
 Unknown375 = 375
 Unknown376 = 376 -- args: <unknown>
 Unknown377 = 377
-Unknown378 = 378
+HasDodgedThrowAttack = 378
 Unknown380 = 380 -- args: <unknown>
 Unknown381 = 381 -- args: <unknown>
 Unknown382 = 382
