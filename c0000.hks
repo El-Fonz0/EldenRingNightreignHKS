@@ -3,7 +3,7 @@
 -- Decompiled using the DSLuaDecompiler by ElaDiDu (fork from original by katalash)
 -- Curated at: https://github.com/ividyon/EldenRingHKS
 ------------------------------------------
--- Version 2 (For ER:NR HKS last updated in 1.01.1)
+-- Version 3 (For ER:NR HKS last updated in 1.01.1)
 ------------------------------------------
 -- Changelog:
 -- 2025-06-07 - Exelot: Initial Release
@@ -17,6 +17,8 @@
 -- 2025-06-07 - Exelot: 
 --              - Renamed env Unknown383 to GetMagicCocktailAffinityCount ( Thanks to ivi )
 --              - Fixed a bug with the function GetEquipType ( Thanks to VIZZO )
+-- 2025-06-26 - ivi:
+--              - Fixed erroneous heroFootOffsetTables, some cleanup
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -20416,34 +20418,71 @@ function Update()
     g_FrameCount = g_FrameCount + 1
 end
 
-local f0_local3 = {}
 heroFootOffsetTables = {
     -- Wylder
-    [HERO_BALANCE] = hkVector4.new(-0.029837800189852715, 0.0026084301061928272, 0.0031328098848462105, 0),
+    [HERO_BALANCE] = {
+        hkVector4.new(-0.029837800189852715, 0.0026084301061928272, 0.0031328098848462105, 0),
+        hkQuaternion.new(3.537859925017983E-07, 0, 6.53787992632715E-07, 1),
+        hkVector4.new(0.14140300452709198, 0.00343983992934227, 0.016963999718427658, 0),
+        hkQuaternion.new(-0.016669899225234985, 0.20554399490356445, -0.009822160005569458, 0.978456974029541)
+    },
     -- Guardian
-    [HERO_TANK] = hkVector4.new(-0.027215100824832916, 0.005970839876681566, 0.037929099053144455, 0),
+    [HERO_TANK] = {
+        hkVector4.new(-0.027215100824832916, 0.005970839876681566, 0.037929099053144455, 0),
+        hkQuaternion.new(-0.04239889979362488, -0.07309190183877945, 0.00019104100647382438, 0.9964240193367004),
+        hkVector4.new(0.1320199966430664, 0.007690909784287214, 0.07055039703845978, 0),
+        hkQuaternion.new(-0.0422758013010025, 0.24880200624465942, 0.010026199743151665, 0.9675790071487427)
+    },
     -- Ironeye
-    [HERO_SHOOTER] = hkVector4.new(-0.061542101204395294, 0.002855780068784952, 0.11534000188112259, 0),
+    [HERO_SHOOTER] = {
+        hkVector4.new(-0.061542101204395294, 0.002855780068784952, 0.11534000188112259, 0),
+        hkQuaternion.new(-0.006716299802064896, -0.006285639945417643, -0.01002930011600256, 0.9999070167541504),
+        hkVector4.new(0.08255569636821747, 0.0020317400339990854, -0.08100569993257523, 0),
+        hkQuaternion.new(0.0012848000042140484, -0.13232800364494324, 0.017779000103473663, 0.9910460114479065)
+    },
     -- Duchess
-    [HERO_SPEED] = hkVector4.new(-0.1130400002002716, 0.0039494698867201805, 0.019797800108790398, 0),
+    [HERO_SPEED] = {
+        hkVector4.new(-0.1130400002002716, 0.0039494698867201805, 0.019797800108790398, 0),
+        hkQuaternion.new(-0.021739499643445015, 0.11296600103378296, -0.00495699979364872, 0.993349015712738),
+        hkVector4.new(0.2304919958114624, 0.012231799773871899, 0.04108110070228577, 0),
+        hkQuaternion.new(-0.06475979834794998, 0.06905680149793625, 0.004534970037639141, 0.99549800157547)
+    },
     -- Raider
-    [HERO_POWER] = hkVector4.new(0.034283701330423355, 0.00023359799524769187, 0.06506600230932236, 0),
+    [HERO_POWER] = {
+        hkVector4.new(0.034283701330423355, 0.00023359799524769187, 0.06506600230932236, 0),
+        hkQuaternion.new(-2.5148199256364023E-06, -0.04408159852027893, -2.854329977708403E-06, 0.9990280270576477),
+        hkVector4.new(0.003081680042669177, 0.00023990099725779146, -0.023486200720071793, 0),
+        hkQuaternion.new(-3.275499921073788E-06, 0.010891900397837162, -3.6277199342293898E-06, 0.9999409914016724)
+    },
     -- Revenant
-    [HERO_NECROMANCER] = hkVector4.new(-0.17718400061130524, 0.009341370314359665, 0.09603279829025269, 0),
-    -- Recluse 
-    [HERO_MAGIC] = hkVector4.new(-0.18238000571727753, -0.00011849399743368849, 0.07893739640712738, 0),
+    [HERO_NECROMANCER] = {
+        hkVector4.new(-0.17718400061130524, 0.009341370314359665, 0.09603279829025269, 0),
+        hkQuaternion.new(-0.032704100012779236, 0.0297084990888834, -0.03663109987974167, 0.9983519911766052),
+        hkVector4.new(0.21090899407863617, 0.014778399839997292, -0.03690379858016968, 0),
+        hkQuaternion.new(-0.029983000829815865, -0.03943770006299019, 0.03369240090250969, 0.9982039928436279)
+    },
+    -- Recluse
+    [HERO_MAGIC] = {
+        hkVector4.new(-0.18238000571727753, -0.00011849399743368849, 0.07893739640712738, 0),
+        hkQuaternion.new(0.0009554679854772985, 0.07557240128517151, -0.05242900177836418, 0.995760977268219),
+        hkVector4.new(0.24793699383735657, 0.012888199649751186, -0.009000290185213089, 0),
+        hkQuaternion.new(-0.036021798849105835, 0.1662759929895401, 0.0345769003033638, 0.9848139882087708)
+    },
     -- Executor
-    [HERO_TECHNICAL] = hkVector4.new(-0.036492299288511276, -3.628430022217799E-06, 0.08864530175924301, 0)
+    [HERO_TECHNICAL] = {
+        hkVector4.new(-0.036492299288511276, -3.628430022217799E-06, 0.08864530175924301, 0),
+        hkQuaternion.new(-6.655079778283834E-05, -0.10118000209331512, 0.0003778169921133667, 0.9948679804801941),
+        hkVector4.new(0.03545650094747543, 0.005778490100055933, -0.06667689979076385, 0),
+        hkQuaternion.new(-0.01346690021455288, -0.10250599682331085, 0.019817300140857697, 0.9944440126419067)
+    }
 }
 
-f0_local3 = function (source, dest)
+function CopyLocalMatrix(source, dest)
     local sourceMatrix = hkbGetBoneLocalSpace(source)
     hkbSetBoneLocalSpace(dest, sourceMatrix)
 end
 
-CopyLocalMatrix = f0_local3
-
-f0_local3 = function (source, dest, offsetPos, offsetRot, offsetRate)
+function CopyModelMatrix_OffsetModelSpace(source, dest, offsetPos, offsetRot, offsetRate)
     local sourceMatrix = hkbGetBoneModelSpace(source)
     local sourcePosition = sourceMatrix:getTranslation()
     sourcePosition = sourcePosition + offsetPos * offsetRate
@@ -20457,9 +20496,7 @@ f0_local3 = function (source, dest, offsetPos, offsetRot, offsetRate)
     hkbSetBoneModelSpace(dest, sourceMatrix)
 end
 
-CopyModelMatrix_OffsetModelSpace = f0_local3
-
-f0_local3 = function (source, YaxisOffset, dest, offsetPos, offsetRate)
+function CalculateFootTarget2_OffsetModelSpace(source, YaxisOffset, dest, offsetPos, offsetRate)
     local sourceMatrix = hkbGetBoneModelSpace(dest)
     local sourcePosition = hkbGetBoneModelSpace(source):getTranslation()
     sourcePosition[1] = sourcePosition[1] + YaxisOffset
@@ -20468,9 +20505,7 @@ f0_local3 = function (source, YaxisOffset, dest, offsetPos, offsetRate)
     hkbSetBoneModelSpace(dest, sourceMatrix)
 end
 
-CalculateFootTarget2_OffsetModelSpace = f0_local3
-
-f0_local3 = function ()
+function Master_Layer_onGenerate()
     local offset = 0.8659999966621399
     local heroId = env(371)
     if heroId > 0 and heroId <= #heroFootOffsetTables then
@@ -20488,32 +20523,20 @@ f0_local3 = function ()
     end
 end
 
-Master_Layer_onGenerate = f0_local3
-
-f0_local3 = function ()
+function ModifiersLayer_onGenerate()
     CopyLocalMatrix("Neck", "Collar")
 end
 
-ModifiersLayer_onGenerate = f0_local3
-f0_local3 = 0
-RIDE_MOVE_TYPE_IDLE = f0_local3
-f0_local3 = 1
-RIDE_MOVE_TYPE_WALK = f0_local3
-f0_local3 = 2
-RIDE_MOVE_TYPE_RUN = f0_local3
-f0_local3 = 3
-RIDE_MOVE_TYPE_DASH = f0_local3
-f0_local3 = 4
-RIDE_MOVE_TYPE_GALLOP = f0_local3
-f0_local3 = 10
-RIDE_MOVE_TYPE_OTHER = f0_local3
-f0_local3 = TRUE
-RIDE_ISENABLE_DOUBLEJUMP = f0_local3
+RIDE_MOVE_TYPE_IDLE = 0
+RIDE_MOVE_TYPE_WALK = 1
+RIDE_MOVE_TYPE_RUN = 2
+RIDE_MOVE_TYPE_DASH = 3
+RIDE_MOVE_TYPE_GALLOP = 4
+RIDE_MOVE_TYPE_OTHER = 10
+RIDE_ISENABLE_DOUBLEJUMP = TRUE
 
-f0_local3 = function ()
+function Ride_Activate()
 end
-
-Ride_Activate = f0_local3
 
 f0_local3 = function ()
     if IsEnableFeedAddBlend == TRUE then
