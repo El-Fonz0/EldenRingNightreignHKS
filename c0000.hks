@@ -3,7 +3,7 @@
 -- Decompiled using the DSLuaDecompiler by ElaDiDu (fork from original by katalash)
 -- Curated at: https://github.com/ividyon/EldenRingHKS
 ------------------------------------------
--- Version 4 (For ER:NR HKS last updated in 1.01.7)
+-- Version 5 (For ER:NR HKS last updated in 1.01.7)
 ------------------------------------------
 -- Changelog:
 -- 2025-06-07 - Exelot: Initial Release
@@ -37,6 +37,10 @@
 --				- Added SUMMON enums for Revenant's skill
 --				- Added a helper variable 'c_MainHand' that defaults to HAND_RIGHT and changes to HAND_LEFT for 2H Left
 --				- Added a helper variable 'c_GuardHand' that defaults to HAND_LEFT and changes to HAND_RIGHT for 2H Right
+-- 2025-07-29 - El Fonz0:
+--				- Implemented a bandaid fix for a bug apparently caused by decomp where performing a back dodge with Duchess caused you to back dodge towards target
+--				- Added ROLLING variation enums
+--				- Added some comments for Surge Sprint toggling off and Rolling_Selftrans2 (Duchess repeated first dodge)
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -4735,7 +4739,7 @@ c_ArtsRollingAngle = 0
 function ExecEvasion(backstep_limit, estep, is_usechainrecover)
     if estep == ESTEP_LAND then
         SetWeightIndex()
-        SetVariable("RollingVariationIndex", 0)
+        SetVariable("RollingVariationIndex", ROLLING_DEFAULT)
         local rollingEvent = "W_Rolling"
         local is_selfTrans = FALSE
         if IsNodeActive("Rolling_CMSG") == TRUE then
@@ -4829,21 +4833,21 @@ function ExecEvasion(backstep_limit, estep, is_usechainrecover)
     end
     SetWeightIndex()
     if env(GetHeroID) == HERO_MAGIC and env(GetSpEffectID, 1800200) == TRUE then
-        SetVariable("RollingVariationIndex", 8)
+        SetVariable("RollingVariationIndex", ROLLING_CREATEMAGIC_THUNDER_HOLY)
     elseif IsEnableHighGuard() == TRUE and IsGuard() == TRUE then
-        SetVariable("RollingVariationIndex", 6)
+        SetVariable("RollingVariationIndex", ROLLING_HIGHGUARD)
     elseif env(GetHeroID) == HERO_MAGIC and GetVariable("EvasionWeightIndex") ~= EVASION_WEIGHT_INDEX_HEAVY then
-        SetVariable("RollingVariationIndex", 4)
+        SetVariable("RollingVariationIndex", ROLLING_MAGIC)
     elseif IsNodeActive("FookShotMove_CMSG") == TRUE and GetVariable("EvasionWeightIndex") ~= EVASION_WEIGHT_INDEX_HEAVY then
-        SetVariable("RollingVariationIndex", 3)
+        SetVariable("RollingVariationIndex", ROLLING_FOOKSHOT)
     elseif env(GetHeroID) == HERO_SPEED and GetVariable("EvasionWeightIndex") ~= EVASION_WEIGHT_INDEX_HEAVY then
-        SetVariable("RollingVariationIndex", 2)
+        SetVariable("RollingVariationIndex", ROLLING_SPEED)
     elseif env(GetHeroID) == HERO_TANK and GetVariable("EvasionWeightIndex") ~= EVASION_WEIGHT_INDEX_HEAVY then
-        SetVariable("RollingVariationIndex", 1)
+        SetVariable("RollingVariationIndex", ROLLING_TANK)
     elseif IsDemonSwordMode() == TRUE and GetVariable("EvasionWeightIndex") ~= EVASION_WEIGHT_INDEX_HEAVY then
-        SetVariable("RollingVariationIndex", 9)
+        SetVariable("RollingVariationIndex", ROLLING_DEMONSWORD)
     else
-        SetVariable("RollingVariationIndex", 0)
+        SetVariable("RollingVariationIndex", ROLLING_DEFAULT)
     end
     if request == ATTACK_REQUEST_ROLLING then
         if is_usechainrecover == TRUE then
@@ -5618,7 +5622,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
         if env(GetSpEffectID, 7032400) == TRUE then
             act(AddSpEffect, 7032401)
         end
-        SetVariable("RollingVariationIndex", 7)
+        SetVariable("RollingVariationIndex", ROLLING_CHEATDEATH)
         ExecEventAllBody("W_Rolling")
         return TRUE
     end
@@ -9079,13 +9083,14 @@ function Rolling_onActivate()
 end
 
 function Rolling_onUpdate()
-    if GetVariable("RollingVariationIndex") == 3 then
+    if GetVariable("RollingVariationIndex") == ROLLING_FOOKSHOT then
         act(SetMovementScaleMult, 1.5)
     end
-    if env(GetSpEffectID, 703555) == TRUE then
+	-- Implemented a bandaid fix for a strange bug where back dodging once with Duchess resulted in back dodging towards the target
+    if env(GetSpEffectID, 703555) == TRUE and env(GetHeroID) == HERO_SPEED and GetVariable("RollingDirectionIndex_SelfTrans") ~= 1 then
         act(LockonFixedAngleCancel)
     end
-    if GetVariable("RollingVariationIndex") == 7 then
+    if GetVariable("RollingVariationIndex") == ROLLING_CHEATDEATH then
         act(FallPreventionAssist)
     end
     act(DisallowAdditiveTurning, TRUE)
@@ -9096,7 +9101,7 @@ function Rolling_onUpdate()
         ResetDamageCount()
     end
     SetEnableAimMode()
-    if env(GetSpEffectID, 701530) == TRUE and GetVariable("RollingVariationIndex") == 6 then
+    if env(GetSpEffectID, 701530) == TRUE and GetVariable("RollingVariationIndex") == ROLLING_HIGHGUARD then
         local guardindex = GUARD_STYLE_HIGHGUARD
         SetVariable("IndexGuardStyle", guardindex)
         local hand = HAND_LEFT
@@ -9185,7 +9190,9 @@ function Rolling_Selftrans_onActivate()
 end
 
 function Rolling_Selftrans_onUpdate()
-    if env(GetSpEffectID, 703555) == TRUE then
+    -- Implemented a bandaid fix for a strange bug where back dodging once with Duchess resulted in back dodging towards the target
+	-- This one's harder to pull off so less of a deal, and occurs in vanilla too
+    if env(GetSpEffectID, 703555) == TRUE and env(GetHeroID) == HERO_SPEED and GetVariable("RollingDirectionIndex") ~= 1 then
         act(LockonFixedAngleCancel)
     end
     act(DisallowAdditiveTurning, TRUE)
@@ -9195,7 +9202,7 @@ function Rolling_Selftrans_onUpdate()
     if env(GetSpEffectID, 100390) == TRUE then
         ResetDamageCount()
     end
-    if env(GetSpEffectID, 701530) == TRUE and GetVariable("RollingVariationIndex") == 6 then
+    if env(GetSpEffectID, 701530) == TRUE and GetVariable("RollingVariationIndex") == ROLLING_HIGHGUARD then
         local guardindex = GUARD_STYLE_HIGHGUARD
         SetVariable("IndexGuardStyle", guardindex)
         local hand = HAND_LEFT
@@ -9229,8 +9236,11 @@ function Rolling_Selftrans_onDeactivate()
     act(DisallowAdditiveTurning, FALSE)
 end
 
+-- Duchess performing first dodge from another dodge
 function Rolling_Selftrans2_onUpdate()
-    if env(GetSpEffectID, 703555) == TRUE then
+    -- Implemented a bandaid fix for a strange bug where back dodging once with Duchess resulted in back dodging towards the target
+	-- This one's harder to pull off so less of a deal, and occurs in vanilla too
+    if env(GetSpEffectID, 703555) == TRUE and env(GetHeroID) == HERO_SPEED and GetVariable("RollingDirectionIndex") ~= 1 then
         act(LockonFixedAngleCancel)
     end
     act(DisallowAdditiveTurning, TRUE)
@@ -20569,14 +20579,30 @@ function Update()
     local index_hero = env(GetHeroID)
     SetVariable("IndexHero", index_hero)
     SetVariable("UniqueIdleBlend_Upperbody_ChangeIndex", 1)
+	-- Handle Surge Sprint Auto Toggle Off
     if GetVariable("MoveSpeedIndex") == 3 then
+		-- Perform a Jump Attack
         if IsNodeActive("NewJump LayerGenerator") == TRUE and GetVariable("JumpAttackForm") ~= 0 then
             SetVariable("MoveSpeedIndex", 0)
         end
+		-- Stop moving during HandChange/WeaponChange
         if (IsNodeActive("HandChange_Upper_SM") == TRUE or IsNodeActive("WeaponChange_Upper_SM") == TRUE) and GetVariable("MoveSpeedLevel") == 0 then
             SetVariable("MoveSpeedIndex", 0)
         end
-        if IsNodeActive("NewJump LayerGenerator") == FALSE and IsNodeActive("Fall_SM") == FALSE and IsNodeActive("Move_Upper Selector") == FALSE and IsNodeActive("HandChange_Upper_SM") == FALSE and IsNodeActive("WeaponChange_Upper_SM") == FALSE and IsNodeActive("Sprint180_CMSG") == FALSE and IsNodeActive("Rolling_To_Sprint_Light_CMSG") == FALSE and IsNodeActive("FookShotFire_CMSG00") == FALSE and IsNodeActive("FookShotMove_CMSG") == FALSE and IsNodeActive("FookShotMoveBreak_CMSG") == FALSE and IsNodeActive("DragoonJumpStart_CMSG") == FALSE and IsNodeActive("Departure_FallEnd_CMSG") == FALSE and IsNodeActive("BirdAct_FallEnd_CMSG") == FALSE then
+		-- List of Surge Sprint compatible states
+        if IsNodeActive("NewJump LayerGenerator") == FALSE 
+		  and IsNodeActive("Fall_SM") == FALSE 
+		  and IsNodeActive("Move_Upper Selector") == FALSE 
+		  and IsNodeActive("HandChange_Upper_SM") == FALSE 
+		  and IsNodeActive("WeaponChange_Upper_SM") == FALSE 
+		  and IsNodeActive("Sprint180_CMSG") == FALSE 
+		  and IsNodeActive("Rolling_To_Sprint_Light_CMSG") == FALSE 
+		  and IsNodeActive("FookShotFire_CMSG00") == FALSE 
+		  and IsNodeActive("FookShotMove_CMSG") == FALSE 
+		  and IsNodeActive("FookShotMoveBreak_CMSG") == FALSE 
+		  and IsNodeActive("DragoonJumpStart_CMSG") == FALSE 
+		  and IsNodeActive("Departure_FallEnd_CMSG") == FALSE 
+		  and IsNodeActive("BirdAct_FallEnd_CMSG") == FALSE then
             SetVariable("MoveSpeedIndex", 0)
         end
     end
@@ -26862,7 +26888,7 @@ function SuperJumpLoop_onDeactivate()
 end
 
 function ThrowCounter_onUpdate()
-    if GetVariable("RollingVariationIndex") == 3 then
+    if GetVariable("RollingVariationIndex") == ROLLING_FOOKSHOT then
         act(SetMovementScaleMult, 1.5)
     end
     if env(GetSpEffectID, 703555) == TRUE then
@@ -28158,6 +28184,18 @@ WEAPON_REF_BIRD = 5
 SUMMON_HELEN = 0
 SUMMON_FREDERICK = 1
 SUMMON_SEBASTIAN = 2
+
+-- Enums for Rolling variations
+ROLLING_DEFAULT = 0
+ROLLING_TANK = 1
+ROLLING_SPEED = 2
+ROLLING_FOOKSHOT = 3
+ROLLING_MAGIC = 4
+ROLLING_UNK = 5
+ROLLING_HIGHGUARD = 6
+ROLLING_CHEATDEATH = 7
+ROLLING_CREATEMAGIC_THUNDER_HOLY = 8
+ROLLING_DEMONSWORD = 9
 
 g_IsMimicry = 0
 g_EnableMimicry = 0
