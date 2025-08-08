@@ -28438,7 +28438,8 @@ SwordArtPutOppositeWeapon = {
     [252] = {TRUE, FALSE, FALSE},
     [253] = {TRUE, FALSE, TRUE},
     [254] = {TRUE, FALSE, TRUE},
-    [256] = {TRUE, FALSE, TRUE}
+    [256] = {TRUE, FALSE, TRUE},
+	[260] = {TRUE, FALSE, TRUE}
 }
 
 -- Decides whether to perform a "retrieve weapon" animation after finishing a Weapon Art.
