@@ -2604,7 +2604,6 @@ function ExecAttack(r1, r2, l1, l2, b1, b2, is_guard, blend_type, artsr1, artsr2
                 ExecEventAllBody("W_TranceModeStart")
             end
         end
-        end
     elseif request == ATTACK_REQUEST_ULTRA then
         if env(GetHeroID) == HERO_BALANCE then
             atk_hand = HAND_LEFT
