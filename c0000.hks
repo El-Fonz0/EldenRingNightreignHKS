@@ -45,6 +45,10 @@
 --				- Updated with changes from 1.02
 --				- Slightly optimized IsDualBladeSpecific function
 --				- Censored references to new heroes with generic ones
+-- 2025-08-12 - El Fonz0:
+--				- Updated with changes from 1.02.1
+--				- Renamed ROLLING enum 8 to be more accurate
+--				- Identified env calls 386 and 387 - used in c9997
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -1411,6 +1415,10 @@ end
 
 -- Determine if player should be directly killed
 function IsDirectDeath()
+	-- If player isn't a hero or has speffect 102130
+	if env(GetHeroID) == HERO_NONE or env(GetSpEffectID, 102130) == TRUE then
+		return TRUE
+	end
 	-- Check if player is solo and some value being 0/2/3
     if env(IsMultiplayer) == FALSE and (env(Unknown389) == 0 or env(Unknown389) == 2 or env(Unknown389) == 3) then
 		-- Check if player is vs a Night boss/Nightlord
@@ -1514,6 +1522,62 @@ function ExecDejavu()
             act(AddSpEffect, 7500301)
         end
         SetVariable("AddDejavuBlend", 1)
+        act(ResetInputQueue)
+        return TRUE
+    end
+    return FALSE
+end
+
+-- Hero 10 - Skill
+function ExecChangeTranceBlend()
+    if env(GetHeroID) ~= HERO_10 then
+        return FALSE
+    end
+    if GetVariable("AddTranceBlend") ~= 1 then
+        return FALSE
+    end
+    if GetVariable("IndexTranceBlend") == 2 
+	  or IsNodeActive("Idle_CMSG") == TRUE 
+	  or IsNodeActive("Move_Upper Selector") == TRUE 
+	  or IsNodeActive("Stop_SM") == TRUE 
+	  or IsNodeActive("Rolling_CMSG") == TRUE 
+	  or IsNodeActive("Rolling_Selftrans_CMSG") == TRUE 
+	  or IsNodeActive("LadyBackStep_Selector") == TRUE 
+	  or IsNodeActive("LadyBackStep2_Selector") == TRUE then
+    elseif IsNodeActive("NewJump Script") == TRUE 
+	  and GetVariable("JumpAttackForm") == 0 then
+    else
+        SetVariable("IndexTranceBlend", 2)
+    end
+    if env(GetSpEffectID, 703546) == TRUE then
+        SetVariable("AddTranceBlend", 0)
+    end
+    return FALSE
+end
+
+-- Hero 10 - Skill
+function ExecTrance()
+    if env(GetHeroID) ~= HERO_10 then
+        return FALSE
+    end
+
+    if GetVariable("AddTranceBlend") ~= 0 then
+        return FALSE
+    end
+
+    if env(IsCharacterSkillReady) == FALSE then
+        return FALSE
+    end
+    if env(GetHP) <= 0 then
+        return FALSE
+    end
+    if env(ActionDuration, ACTION_ARM_SKILL) > 0 then
+        if c_Style == HAND_LEFT_BOTH or c_Style == HAND_RIGHT_BOTH then
+            SetVariable("IndexTranceBlend", 0)
+        else
+            SetVariable("IndexTranceBlend", 0)
+        end
+        SetVariable("AddTranceBlend", 1)
         act(ResetInputQueue)
         return TRUE
     end
@@ -1907,10 +1971,8 @@ function GetAttackRequest(is_guard)
         return ATTACK_REQUEST_LEFT_HEAVY
     end
     if env(ActionRequest, ACTION_ARM_SKILL) == TRUE then
-		if env(GetSpEffectID, 700900) == TRUE then
-            return ATTACK_REQUEST_SKILL
-        end
-        if env(IsCharacterSkillReady) == FALSE or env(GetSpEffectID, 102065) == TRUE or env(GetHeroID) == HERO_SPEED then
+        if env(IsCharacterSkillReady) == FALSE or env(GetSpEffectID, 102065) == TRUE 
+		  or env(GetHeroID) == HERO_SPEED or env(GetHeroID) == HERO_10 then
             return ATTACK_REQUEST_INVALID
         else
             act(DebugLogOutput, "ウルト実行")
@@ -1920,10 +1982,8 @@ function GetAttackRequest(is_guard)
     if request_l2 == TRUE then
         act(DebugLogOutput, "action request ACTION_ARM_L2")
         if env(ActionDuration, ACTION_ARM_ACTION) > 0 then
-			if env(GetSpEffectID, 700900) == TRUE then
-				return ATTACK_REQUEST_SKILL
-			end
-            if env(IsCharacterSkillReady) == FALSE or env(GetSpEffectID, 102065) == TRUE or env(GetHeroID) == HERO_SPEED then
+            if env(IsCharacterSkillReady) == FALSE or env(GetSpEffectID, 102065) == TRUE 
+			  or env(GetHeroID) == HERO_SPEED or env(GetHeroID) == HERO_10 then
                 return ATTACK_REQUEST_INVALID
             else
                 act(DebugLogOutput, "ウルト実行")
@@ -2598,11 +2658,6 @@ function ExecAttack(r1, r2, l1, l2, b1, b2, is_guard, blend_type, artsr1, artsr2
 		elseif env(GetHeroID) == HERO_9 then
             ExecEventHalfBlend(Event_PhotoShootStart, blend_type)
         elseif env(GetHeroID) == HERO_10 then
-            if env(GetSpEffectID, 700900) == TRUE then
-                ExecEventAllBody("W_TranceModeEnd")
-            else
-                ExecEventAllBody("W_TranceModeStart")
-            end
         end
     elseif request == ATTACK_REQUEST_ULTRA then
         if env(GetHeroID) == HERO_BALANCE then
@@ -3487,6 +3542,7 @@ function ExecMagic(quick_type, blend_type, is_ride)
     elseif magic_req == MAGIC_LEFT_SECOND_SLOT then
         SetVariable("IndexMagicSlot", MAGIC_SLOT_SECOND)
     else
+		SetVariable("MagicRight_ShieldCategory", 0)
         SetVariable("IndexMagicSlot", MAGIC_SLOT_CREATE)
     end
     local magic_index = env(GetMagicAnimType)
@@ -3547,6 +3603,8 @@ function ExecMagic(quick_type, blend_type, is_ride)
     if magic_index == MAGIC_REQUEST_ORDER_SHIELD then
         if GetEquipType(HAND_LEFT, WEAPON_CATEGORY_LARGE_SHIELD) == TRUE then
             SetVariable("MagicRight_ShieldCategory", 1)
+		else
+			SetVariable("MagicRight_ShieldCategory", 0)
         end
     else
         SetVariable("MagicRight_ShieldCategory", 0)
@@ -3694,6 +3752,7 @@ function ExecCreateMagic(quick_type, blend_type, is_ride)
     local delayActRequestNo = -1
     local is_samagic = FALSE
     local magic_req = MAGIC_CREATION_SLOT
+	SetVariable("MagicRight_ShieldCategory", 0)
     act(DecideMagicUse, magic_req)
     if magic_req == MAGIC_RIGHT_FIRST_SLOT then
         SetVariable("IndexMagicSlot", MAGIC_SLOT_FIRST)
@@ -4962,7 +5021,7 @@ function ExecEvasion(backstep_limit, estep, is_usechainrecover)
     end
     SetWeightIndex()
     if env(GetHeroID) == HERO_MAGIC and env(GetSpEffectID, 1800200) == TRUE then
-        SetVariable("RollingVariationIndex", ROLLING_CREATEMAGIC_THUNDER_HOLY)
+        SetVariable("RollingVariationIndex", ROLLING_CREATEMAGIC_THUNDER)
     elseif IsEnableHighGuard() == TRUE and IsGuard() == TRUE then
         SetVariable("RollingVariationIndex", ROLLING_HIGHGUARD)
     elseif env(GetHeroID) == HERO_MAGIC and GetVariable("EvasionWeightIndex") ~= EVASION_WEIGHT_INDEX_HEAVY then
@@ -4975,6 +5034,11 @@ function ExecEvasion(backstep_limit, estep, is_usechainrecover)
         SetVariable("RollingVariationIndex", ROLLING_TANK)
     elseif IsDemonSwordMode() == TRUE and GetVariable("EvasionWeightIndex") ~= EVASION_WEIGHT_INDEX_HEAVY then
         SetVariable("RollingVariationIndex", ROLLING_DEMONSWORD)
+	elseif env(GetHeroID) == HERO_9 and GetVariable("EvasionWeightIndex") ~= EVASION_WEIGHT_INDEX_HEAVY then
+        SetVariable("RollingVariationIndex", ROLLING_HERO_9)
+	elseif env(GetHeroID) == HERO_10 and env(GetSpEffectID, 709000) == TRUE then
+		SetVariable("EvasionWeightIndex", 0)
+        SetVariable("RollingVariationIndex", ROLLING_HERO_10)
     else
         SetVariable("RollingVariationIndex", ROLLING_DEFAULT)
     end
@@ -5759,7 +5823,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
     local damage_type = env(GetReceivedDamageType)
     local is_damaged = env(HasReceivedAnyDamage)
     local is_demonsword_justguard = FALSE
-	if env(GetSpEffectID, 700900) == TRUE and is_damaged == TRUE then
+	if env(GetSpEffectID, 709000) == TRUE and is_damaged == TRUE then
         SetVariable("EvasionWeightIndex", 0)
         SetVariable("RollingDirectionIndex_SelfTrans", 1)
         if env(GetCheatDeathAtkDirection) == 0 then
@@ -9354,9 +9418,16 @@ function Rolling_onUpdate()
                 l1 = "W_AttackLeftLight6"
             end
         end
-		if env(GetSpEffectID, 700900) == TRUE and GetVariable("RollingVariationIndex") == ROLLING_TRANCE and env(ActionRequest, ACTION_ARM_R2) == TRUE then
-            ExecEventAllBody("W_TranceModeCounter")
-            return
+		if env(GetSpEffectID, 709000) == TRUE and GetVariable("RollingVariationIndex") == ROLLING_TRANCE then
+            if env(ActionRequest, ACTION_ARM_R2) == TRUE then
+                ATTACKER_COUNTER = 1
+                ExecEventAllBody("W_TranceModeCounter")
+                return
+            elseif env(ActionRequest, ACTION_ARM_R1) == TRUE then
+                ATTACKER_COUNTER = 0
+                ExecEventAllBody("W_TranceModeCounter")
+                return
+            end
         end
         if EvasionCommonFunction(FALL_TYPE_DEFAULT, r1, "W_AttackRightHeavy1Start", l1, l2, b1, "W_AttackBothHeavy1Start", QUICKTYPE_ROLLING) == TRUE then
             return
@@ -9410,9 +9481,16 @@ function Rolling_Selftrans_onUpdate()
         end
     else
         SetEnableAimMode()
-		if env(GetSpEffectID, 700900) == TRUE and GetVariable("RollingVariationIndex") == ROLLING_TRANCE and env(ActionRequest, ACTION_ARM_R2) == TRUE then
-            ExecEventAllBody("W_TranceModeCounter")
-            return
+		if env(GetSpEffectID, 709000) == TRUE and GetVariable("RollingVariationIndex") == ROLLING_TRANCE then
+            if env(ActionRequest, ACTION_ARM_R2) == TRUE then
+                ATTACKER_COUNTER = 1
+                ExecEventAllBody("W_TranceModeCounter")
+                return
+            elseif env(ActionRequest, ACTION_ARM_R1) == TRUE then
+                ATTACKER_COUNTER = 0
+                ExecEventAllBody("W_TranceModeCounter")
+                return
+            end
         end
         if EvasionCommonFunction(FALL_TYPE_DEFAULT, "W_AttackRightLightStep", "W_AttackRightHeavy1Start", "W_AttackLeftLight1", "W_AttackLeftHeavy1", "W_AttackBothLightStep", "W_AttackBothHeavy1Start", QUICKTYPE_ROLLING) == TRUE then
             return
@@ -13118,7 +13196,9 @@ function DrawStanceRightLoop_Upper_onUpdate()
         ExecEventHalfBlend(Event_DrawStanceRightEnd, blend_type)
         return
     end
-    if GetEquipType(c_SwordArtsHand, WEAPON_CATEGORY_LARGE_ARROW) == FALSE and c_SwordArtsID ~= 105 and c_SwordArtsID ~= 108 and c_SwordArtsID ~= 169 and HalfBlendLowerCommonFunction(Event_DrawStanceRightLoop, lower_state, FALSE) == TRUE then
+    if GetEquipType(c_SwordArtsHand, WEAPON_CATEGORY_LARGE_ARROW) == FALSE 
+	  and c_SwordArtsID ~= 105 and c_SwordArtsID ~= 108 and c_SwordArtsID ~= 169 
+	  and HalfBlendLowerCommonFunction(Event_DrawStanceRightLoop, lower_state, FALSE) == TRUE then
         return
     end
 end
@@ -13398,6 +13478,7 @@ function DrawStanceRightAttackHeavy2_onUpdate()
 end
 
 function StormRuler_AttackHeavy_onUpdate()
+	act(SetCanChangeEquipmentOff)
     local r1 = "W_StormRuler_AttackLight1"
     local r2 = "W_StormRuler_AttackLight1"
     local b1 = "W_StormRuler_AttackLight1"
@@ -13413,6 +13494,7 @@ function StormRuler_AttackHeavy_onUpdate()
 end
 
 function StormRuler_AttackLight1_onUpdate()
+	act(SetCanChangeEquipmentOff)
     local r1 = "W_StormRuler_AttackLight2"
     local r2 = "W_StormRuler_AttackLight2"
     local b1 = "W_StormRuler_AttackLight2"
@@ -13428,6 +13510,7 @@ function StormRuler_AttackLight1_onUpdate()
 end
 
 function StormRuler_AttackLight2_onUpdate()
+	act(SetCanChangeEquipmentOff)
     local r1 = "W_StormRuler_AttackLight3"
     local r2 = "W_StormRuler_AttackLight3"
     local b1 = "W_StormRuler_AttackLight3"
@@ -13443,6 +13526,7 @@ function StormRuler_AttackLight2_onUpdate()
 end
 
 function StormRuler_AttackLight3_onUpdate()
+	act(SetCanChangeEquipmentOff)
     local r1 = "W_StormRuler_AttackLight2"
     local r2 = "W_StormRuler_AttackLight2"
     local b1 = "W_StormRuler_AttackLight2"
@@ -15552,8 +15636,15 @@ end
 function TranceModeCounter_onUpdate()
     act(SetSpecialInterpolation, 0, FALSE)
     if env(GetEventEzStateFlag, 0) == TRUE then
-        ExecEventAllBody("W_AttackRightLightCounter")
-        return
+        if ATTACKER_COUNTER == 0 then
+            act(AddSpEffect, 709000)
+            ExecEventAllBody("W_AttackRightLightStep")
+            return
+        else
+            act(AddSpEffect, 709000)
+            ExecEventAllBody("W_AttackRightLightCounter")
+            return
+        end
     end
     local r1 = "W_AttackRightLightSubStart"
     if g_ComboReset == TRUE then
@@ -18532,6 +18623,13 @@ function ThrowDeathIdle_onActivate()
     act(SetThrowState, THROW_TYPE_INVALID)
 end
 
+function ThrowDeathIdle_onUpdate()
+    if env(GetHP) > 0 and env(GetSpEffectID, 49280) == TRUE then
+        ExecEventAllBody("W_Event60506")
+        return TRUE
+    end
+end
+
 local blendtimemax = 0
 local blendtime = 0
 local EVENT_BLEND_RATE = 1000
@@ -19691,6 +19789,16 @@ end
 
 function Event61030_onUpdate()
     act(SetAllowedThrowDefenseType, 255)
+end
+
+function Event61040_onActivate()
+    ResetEventState()
+end
+
+function Event61040_onUpdate()
+    if EventCommonFunction() == TRUE then
+        return
+    end
 end
 
 function Event63000_onActivate()
@@ -21046,6 +21154,8 @@ function Update()
     end
     ExecChangeDejavuBlend()
     ExecDejavu()
+	ExecChangeTranceBlend()
+	ExecTrance()
     SetLadyComobo()
 	-- Recluse's Lightning Auto-Parry Magic Cocktail
     if env(GetHeroID) == HERO_MAGIC and GetVariable("AddAutoParryBlend") == 1 and env(GetSpEffectID, 1801500) == FALSE then
@@ -28708,6 +28818,8 @@ SPEED_COMBO_NUMBER_DUAL = 0
 
 MAGIC_ELMENTAL_NUMBER = 0
 POWER_DAMAGE_COUNTER = 0
+ATTACKER_COUNTER = 0
+
 RELIC_WEAPONCHANGE_ENCHANT = 0
 RUNE_BONUS = 0
 
@@ -28772,8 +28884,10 @@ ROLLING_MAGIC = 4
 ROLLING_UNK = 5
 ROLLING_HIGHGUARD = 6
 ROLLING_CHEATDEATH = 7
-ROLLING_CREATEMAGIC_THUNDER_HOLY = 8
+ROLLING_CREATEMAGIC_THUNDER = 8
 ROLLING_DEMONSWORD = 9
+ROLLING_HERO_9 = 10
+ROLLING_HERO_10 = 11
 ROLLING_TRANCE = 12
 
 -- Enums for hiding new Heroes
@@ -28999,6 +29113,8 @@ IsSummonInactive = 381 -- args: summon_id
 GetThrowFreedomType = 382
 GetMagicCocktailAffinityCount = 383
 GetBirdPathEscapeTime = 384
+GetDemonBeastHP = 386
+GetDemonBeastUltimatePercent = 387
 GetMarkingDamageID = 388
 Unknown389 = 389
 IsCheatDeathTriggered = 391
