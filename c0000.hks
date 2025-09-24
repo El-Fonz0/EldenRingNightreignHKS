@@ -50,7 +50,9 @@
 --				- Renamed ROLLING enum 8 to be more accurate
 --				- Identified env calls 386 and 387 - used in c9997
 -- 2025-09-23 - El Fonz0:
---				- Updated with changed from 1.02.2
+--				- Updated with changes from 1.02.2
+-- 2025-09-24 - El Fonz0:
+--				- Updated with changes from 1.02.3
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -1664,6 +1666,9 @@ function ExecChangeFlask()
                 act(AddSpEffect, 7010250)
                 act(AddSpEffect, 7010283)
             else
+				if env(GetSpEffectID, 8440200) == FALSE then
+					act(AddSpEffect, 501000)
+				end
 				-- FP Flask
                 act(AddSpEffect, 7010250)
             end
@@ -10303,6 +10308,7 @@ function NearDeathStart_onActivate()
     ResetRightArmAdd()
 	-- Clear Immortal March Revive
     act(AddSpEffect, 705021)
+	act(AddSpEffect, 7010909)
     act(AddSpEffect, 42206)
 	-- Cure all statuses
     act(AddSpEffect, 30101)
@@ -10359,6 +10365,9 @@ function NearDeathRevival_onActivate()
     SetVariable("ThrowDeathState", 0)
     ActivateRightArmAdd(START_FRAME_A02)
     ISENABLE_NEARDEATHREVIVAL = FALSE
+	if env(GetSpEffectID, 7010905) == TRUE then
+		act(AddSpEffect, 7010906)
+	end
 end
 
 function NearDeathRevival_onUpdate()
@@ -19914,6 +19923,7 @@ function Event60910_onActivate()
     ResetEventState()
     ResetRightArmAdd()
     act(AddSpEffect, 705021)
+	act(AddSpEffect, 7010909)
     act(AddSpEffect, 42206)
     act(AddSpEffect, 30101)
 end
