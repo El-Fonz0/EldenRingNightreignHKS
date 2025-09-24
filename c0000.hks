@@ -49,6 +49,8 @@
 --				- Updated with changes from 1.02.1
 --				- Renamed ROLLING enum 8 to be more accurate
 --				- Identified env calls 386 and 387 - used in c9997
+-- 2025-09-23 - El Fonz0:
+--				- Updated with changed from 1.02.2
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -1572,14 +1574,19 @@ function ExecTrance()
         return FALSE
     end
     if env(ActionDuration, ACTION_ARM_SKILL) > 0 then
-        if c_Style == HAND_LEFT_BOTH or c_Style == HAND_RIGHT_BOTH then
-            SetVariable("IndexTranceBlend", 0)
-        else
-            SetVariable("IndexTranceBlend", 0)
-        end
-        SetVariable("AddTranceBlend", 1)
-        act(ResetInputQueue)
-        return TRUE
+		if env(GetSpEffectID, 5020) == TRUE and env(IsUltimateArtReady) == TRUE then
+			ExecEventAllBody("W_TranceMode_Enhance_Start")
+			return TRUE
+		else
+			if c_Style == HAND_LEFT_BOTH or c_Style == HAND_RIGHT_BOTH then
+				SetVariable("IndexTranceBlend", 0)
+			else
+				SetVariable("IndexTranceBlend", 0)
+			end
+			SetVariable("AddTranceBlend", 1)
+			act(ResetInputQueue)
+			return TRUE
+		end
     end
     return FALSE
 end
@@ -1824,7 +1831,10 @@ function GetAttackRequest(is_guard)
         end
     end
     if env(ActionRequest, ACTION_ARM_ULTRA) == TRUE then
-        if env(IsUltimateArtReady) == FALSE or env(GetSpEffectID, 102065) == TRUE or env(IsCOMPlayer) == TRUE then
+		if env(GetSpEffectID, 709300) == TRUE and env(GetSpEffectID, 102065) == FALSE and env(IsCOMPlayer) == FALSE then
+			act(DebugLogOutput, "ウルト実行")
+            return ATTACK_REQUEST_ULTRA
+        elseif env(IsUltimateArtReady) == FALSE or env(GetSpEffectID, 102065) == TRUE or env(IsCOMPlayer) == TRUE then
             return ATTACK_REQUEST_INVALID
         else
             act(DebugLogOutput, "ウルト実行")
@@ -2686,6 +2696,11 @@ function ExecAttack(r1, r2, l1, l2, b1, b2, is_guard, blend_type, artsr1, artsr2
 		elseif env(GetHeroID) == HERO_9 then
             ExecEventAllBody("W_JointChainStart")
         elseif env(GetHeroID) == HERO_10 then
+			if env(GetSpEffectID, 709300) == TRUE then
+				SetVariable("IsBonusUlt", 1)
+			else
+				SetVariable("IsBonusUlt", 0)
+			end
             ExecEventAllBody("W_BlinkStakeStart")
         end
     elseif request == ATTACK_REQUEST_ARROW_FIRE_RIGHT or request == ATTACK_REQUEST_ARROW_FIRE_RIGHT2 then
@@ -3043,6 +3058,14 @@ function ExecAirUlt()
         elseif env(GetHeroID) == HERO_SPEED then
             ExecEventAllBody("W_AirAllHideStart")
             return TRUE
+		elseif env(GetHeroID) == HERO_10 then
+			if env(GetSpEffectID, 709300) == TRUE then
+                SetVariable("IsBonusUlt", 1)
+            else
+                SetVariable("IsBonusUlt", 0)
+            end
+            ExecEventAllBody("W_AirBlinkStakeStart")
+            return TRUE
         else
             return FALSE
         end
@@ -3245,6 +3268,24 @@ function IsEnableSpecialAttack(hand)
     end
     local kind = env(GetEquipWeaponCategory, hand)
     if GetEquipType(hand, WEAPON_CATEGORY_RAPIER, WEAPON_CATEGORY_CURVEDSWORD, WEAPON_CATEGORY_LARGE_RAPIER) == TRUE then
+        return TRUE
+    else
+        return FALSE
+    end
+end
+
+function IsEnableBackStepCancel(hand)
+    if env(GetHeroID) ~= HERO_9 then
+        return FALSE
+    end
+
+    local style = c_Style
+    if style == HAND_LEFT_BOTH then
+        hand = HAND_LEFT
+    end
+
+    local kind = env(GetEquipWeaponCategory, hand)
+    if GetEquipType(hand, WEAPON_CATEGORY_RAPIER) == TRUE then
         return TRUE
     else
         return FALSE
@@ -4372,6 +4413,8 @@ function ExecJump()
             SetVariable("IndexSuperJump", 0)
         elseif env(GetSpEffectID, 102501) == TRUE then
             SetVariable("IndexSuperJump", 4)
+		elseif env(GetSpEffectID, 98210) == TRUE then
+			SetVariable("IndexSuperJump", 6)
         end
         ExecEvent("W_SuperJump")
         return TRUE
@@ -5547,6 +5590,9 @@ function ExecPassiveAction(is_parry, fall_type, is_attackwhileguard, is_neardeat
     if ExecDamage(is_parry, is_attackwhileguard) == TRUE then
         return TRUE
     end
+	if ExecBirdAct() == TRUE then
+		return TRUE
+	end
     if ExecFallStart(fall_type) == TRUE then
         ResetDamageCount()
         return TRUE
@@ -5795,6 +5841,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
     if env(GetSpEffectID, 102551) == TRUE then
         return FALSE
     end
+	-- ChrActionFlag 24 "Super Armor"
     if env(IsDamageMotionOff) == TRUE then
         return FALSE
     end
@@ -5819,26 +5866,28 @@ function ExecDamage(is_parry, is_attackwhileguard)
         ExecEventAllBody("W_Rolling")
         return TRUE
     end
-    local damage_level = env(GetDamageLevel)
-    local damage_type = env(GetReceivedDamageType)
-    local is_damaged = env(HasReceivedAnyDamage)
-    local is_demonsword_justguard = FALSE
-	if env(GetSpEffectID, 709000) == TRUE and is_damaged == TRUE then
+    
+	if env(Unknown9999) == TRUE then
         SetVariable("EvasionWeightIndex", 0)
         SetVariable("RollingDirectionIndex_SelfTrans", 1)
-        if env(GetCheatDeathAtkDirection) == 0 then
+        if env(Unknown9999) == 0 then
             SetVariable("RollingDirectionIndex", 3)
-        elseif env(GetCheatDeathAtkDirection) == 1 then
+        elseif env(Unknown9999) == 1 then
             SetVariable("RollingDirectionIndex", 2)
-        elseif env(GetCheatDeathAtkDirection) == 2 then
+        elseif env(Unknown9999) == 2 then
             SetVariable("RollingDirectionIndex", 1)
-        elseif env(GetCheatDeathAtkDirection) == 3 then
+        elseif env(Unknown9999) == 3 then
             SetVariable("RollingDirectionIndex", 0)
         end
         SetVariable("RollingVariationIndex", ROLLING_TRANCE)
         ExecEventAllBody("W_Rolling")
         return TRUE
     end
+	
+	local damage_level = env(GetDamageLevel)
+    local damage_type = env(GetReceivedDamageType)
+    local is_damaged = env(HasReceivedAnyDamage)
+    local is_demonsword_justguard = FALSE
     if env(GetSpEffectType, 32) == TRUE then
         act(SetDamageAnimType, DAMAGE_FLAG_SMALL)
         ResetRequest()
@@ -6320,6 +6369,17 @@ function ExecDamage(is_parry, is_attackwhileguard)
     return FALSE
 end
 
+function ExecBirdAct()
+    if env(GetBirdEventID) == 1 then
+        ExecEventAllBody("W_BirdAct_MoveStart")
+        return TRUE
+    elseif env(GetBirdEventID) == 4 then
+        ExecEventAllBody("W_Departure_MoveStart")
+        return TRUE
+    end
+    return FALSE
+end
+
 function ExecRuneBonus()
     local dT = GetDeltaTime()
     RUNE_BONUS = RUNE_BONUS + dT
@@ -6478,6 +6538,9 @@ function FallCommonFunction(is_enable_falling_death, is_jump, fall_style)
     if ExecDamage(FALSE, FALSE) == TRUE then
         return TRUE
     end
+	if ExecBirdAct() == TRUE then
+		return TRUE
+	end
     if ExecFookShot() == TRUE then
         return TRUE
     end
@@ -6660,6 +6723,9 @@ function BirdActCommonFunction(move_style, is_start)
     if ExecDamage(FALSE, FALSE) == TRUE then
         return TRUE
     end
+	if ExecBirdAct() == TRUE then
+		return TRUE
+	end
     if env(GetBirdActionID) == 1 and (move_style == MOVE_BIRDACT or move_style == MOVE_DEPARTURE) then
         ExecEventAllBody("W_BirdAct_SeparationFallStart")
         return TRUE
@@ -7479,6 +7545,9 @@ function ThrowCommonFunction(estep, gen_hand)
         if ExecDamage(FALSE) == TRUE then
             return TRUE
         end
+		if ExecBirdAct() == TRUE then
+			return TRUE
+		end
     end
     if env(GetThrowFreedomType) == 0 then
         ExecEventAllBody("W_FallStartFaceUp")
@@ -8857,6 +8926,9 @@ function EventCommonFunction()
     if ExecDamage(FALSE) == TRUE then
         return TRUE
     end
+	if ExecBirdAct() == TRUE then
+		return TRUE
+	end
     if ExecFallStart(FALL_TYPE_DEFAULT) == TRUE then
         return TRUE
     end
@@ -9783,6 +9855,7 @@ function GuardStart_Upper_onActivate()
 end
 
 function GuardStart_Upper_onUpdate()
+	act(SetCanChangeEquipmentOff)
     local blend_type, lower_state = GetHalfBlendInfo()
     if lower_state == LOWER_IDLE then
         act(LockonSystemUnableToTurnAngle, 45, 45)
@@ -9811,6 +9884,7 @@ function GuardOn_Upper_onActivate()
 end
 
 function GuardOn_Upper_onUpdate()
+	act(SetCanChangeEquipmentOff)
     local blend_type, lower_state = GetHalfBlendInfo()
     if lower_state == LOWER_IDLE then
         act(LockonSystemUnableToTurnAngle, 45, 45)
@@ -9837,6 +9911,7 @@ end
 Event_MoveQuick = {"W_MoveQuick", MOVE_DEF0}
 
 function GuardEnd_Upper_onUpdate()
+	act(SetCanChangeEquipmentOff)
     local blend_type, lower_state = GetHalfBlendInfo()
     if lower_state == LOWER_IDLE then
         act(LockonSystemUnableToTurnAngle, 45, 45)
@@ -10355,6 +10430,12 @@ end
 
 function AttackRightLight1_onUpdate()
     ExecTravelMagnification(ATTACK_RIGHT_LIGHT1)
+	if IsEnableBackStepCancel(HAND_RIGHT) == TRUE 
+	  and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 
+	  and env(GetSpEffectID, 708200) == TRUE then
+		ExecEventAllBody("W_AttackRightBackStepCancel")
+		return
+	end
     SPEED_COMBO_NUMBER_RIGHT = 1
     local r1 = "W_AttackRightLight2"
     if g_ComboReset == TRUE then
@@ -10366,6 +10447,12 @@ function AttackRightLight1_onUpdate()
 end
 
 function AttackRightLight2_onUpdate()
+	if IsEnableBackStepCancel(HAND_RIGHT) == TRUE 
+	  and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 
+	  and env(GetSpEffectID, 708200) == TRUE then
+		ExecEventAllBody("W_AttackRightBackStepCancel")
+		return
+	end
     SPEED_COMBO_NUMBER_RIGHT = 2
     if IsEnableNextAttack(2, HAND_RIGHT) == TRUE then
         local r1 = "W_AttackRightLight3"
@@ -10381,6 +10468,12 @@ function AttackRightLight2_onUpdate()
 end
 
 function AttackRightLight3_onUpdate()
+	if IsEnableBackStepCancel(HAND_RIGHT) == TRUE 
+	  and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 
+	  and env(GetSpEffectID, 708200) == TRUE then
+		ExecEventAllBody("W_AttackRightBackStepCancel")
+		return
+	end
     SPEED_COMBO_NUMBER_RIGHT = 3
     if IsEnableNextAttack(3, HAND_RIGHT) == TRUE then
         local r1 = "W_AttackRightLight4"
@@ -10396,12 +10489,21 @@ function AttackRightLight3_onUpdate()
 end
 
 function AttackRightLight4_onUpdate()
+	if IsEnableBackStepCancel(HAND_RIGHT) == TRUE 
+	  and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 
+	  and env(GetSpEffectID, 708200) == TRUE then
+		ExecEventAllBody("W_AttackRightBackStepCancel")
+		return
+	end
     SPEED_COMBO_NUMBER_RIGHT = 4
     if IsEnableNextAttack(4, HAND_RIGHT) == TRUE then
         local r1 = "W_AttackRightLight5"
         if g_ComboReset == TRUE then
             r1 = "W_AttackRightLight1"
         end
+		if env(GetHeroID) == HERO_10 and env(GetSpEffectID, 709200) == TRUE then
+			r1 = "W_AttackRightLight2"
+		end
         if AttackCommonFunction(r1, "W_AttackRightHeavy1Start", "W_AttackLeftLight1", "W_AttackLeftHeavy1", "W_AttackBothLight1", "W_AttackBothHeavy1Start", FALSE, TRUE, 4) == TRUE then
             return
         end
@@ -10411,6 +10513,12 @@ function AttackRightLight4_onUpdate()
 end
 
 function AttackRightLight5_onUpdate()
+	if IsEnableBackStepCancel(HAND_RIGHT) == TRUE 
+	  and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 
+	  and env(GetSpEffectID, 708200) == TRUE then
+		ExecEventAllBody("W_AttackRightBackStepCancel")
+		return
+	end
     SPEED_COMBO_NUMBER_RIGHT = 5
     if IsEnableNextAttack(5, HAND_RIGHT) == TRUE then
         local r1 = "W_AttackRightLight6"
@@ -10709,6 +10817,24 @@ function AttackRightHeavySpecial2End_onUpdate()
     end
 end
 
+function AttackRightBackStepCancel_onUpdate()
+    if AttackCommonFunction("W_AttackRightBackstep", "W_AttackRightHeavy1Start", "W_AttackLeftLight1", "W_AttackLeftHeavy1", "W_AttackBothLight1", "W_AttackBothHeavy1Start", FALSE, TRUE, 0) == TRUE then
+        return
+    end
+end
+
+function AttackLeftBackStepCancel_onUpdate()
+    if AttackCommonFunction("W_AttackRightBackstep", "W_AttackRightHeavy1Start", "W_AttackLeftLight1", "W_AttackLeftHeavy1", "W_AttackBothLight1", "W_AttackBothHeavy1Start", FALSE, TRUE, 0) == TRUE then
+        return
+    end
+end
+
+function AttackBothBackStepCancel_onUpdate()
+    if AttackCommonFunction("W_AttackRightBackstep", "W_AttackRightHeavy1Start", "W_AttackBothLeft1", "W_AttackLeftHeavy1", "W_AttackBothBackstep", "W_AttackBothHeavy1Start", FALSE, TRUE, 0) == TRUE then
+        return
+    end
+end
+
 function AttackRightSpecial1_onUpdate()
     if AttackCommonFunction("W_AttackRightBackstep", "W_AttackRightHeavy1Start", "W_AttackLeftLight1", "W_AttackLeftHeavy1", "W_AttackBothLight1", "W_AttackBothHeavy1Start", FALSE, TRUE, 0) == TRUE then
         return
@@ -10793,6 +10919,12 @@ function AttackRightHeavyTypeB2End_onUpdate()
 end
 
 function AttackRightBackstep_onUpdate()
+	if IsEnableBackStepCancel(HAND_RIGHT) == TRUE 
+	  and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 
+	  and env(GetSpEffectID, 708200) == TRUE then
+		ExecEventAllBody("W_AttackRightBackStepCancel")
+		return
+	end
     SPEED_COMBO_NUMBER_RIGHT = 1
     ExecTravelMagnification(ATTACK_RIGHT_BACKSTEP)
     local r1 = "W_AttackRightLightSubStart"
@@ -11073,11 +11205,20 @@ function AttackBothLight4_onUpdate()
         if g_ComboReset == TRUE then
             b1 = "W_AttackBothLight1"
         end
+		if env(GetHeroID) == HERO_10 and env(GetSpEffectID, 709200) == TRUE then
+			b1 = "W_AttackBothLight2"
+		end
         if AttackCommonFunction("W_AttackRightLight5", "W_AttackRightHeavy1Start", "W_AttackBothLeft2", "W_AttackLeftHeavy1", b1, "W_AttackBothHeavy1SubStart", FALSE, TRUE, 4) == TRUE then
             return
         end
-    elseif AttackCommonFunction("W_AttackRightLight1", "W_AttackRightHeavy1Start", "W_AttackLeftLight1", "W_AttackLeftHeavy1", "W_AttackBothLight1", "W_AttackBothHeavy1Start", FALSE, TRUE, 0) == TRUE then
-        return
+    else
+		local b1 = "W_AttackBothLight1"
+		if env(GetHeroID) == HERO_10 and env(GetSpEffectID, 709200) == TRUE then
+			b1 = "W_AttackBothLight2"
+		end
+		if AttackCommonFunction("W_AttackRightLight1", "W_AttackRightHeavy1Start", "W_AttackLeftLight1", "W_AttackLeftHeavy1", b1, "W_AttackBothHeavy1Start", FALSE, TRUE, 0) == TRUE then
+			return
+		end
     end
 end
 
@@ -11402,6 +11543,7 @@ function AttackRightLightCounter_onUpdate()
 end
 
 function AttackRightHeavyCounter_onUpdate()
+	ExecTravelMagnification(ATTACK_RIGHT_HEAVYCOUNTER)
     SPEED_COMBO_NUMBER_RIGHT = 1
     local r1 = "W_AttackRightLightSubStart"
     local b1 = "W_AttackBothLightSubStart"
@@ -11427,6 +11569,7 @@ function AttackBothLightCounter_onUpdate()
 end
 
 function AttackBothHeavyCounter_onUpdate()
+	ExecTravelMagnification(ATTACK_BOTH_HEAVYCOUNTER)
     SPEED_COMBO_NUMBER_BOTH = 1
     local b1 = "W_AttackBothLightSubStart"
     if g_ComboReset == TRUE then
@@ -11439,6 +11582,7 @@ end
 
 function AttackRightHeavyCounterStart_onUpdate()
     act(SetSpecialInterpolation, 0, FALSE)
+	ExecTravelMagnification(ATTACK_RIGHT_HEAVYCOUNTER)
     if IsEnableSpecialAttack(HAND_RIGHT) == TRUE and 0 < env(ActionDuration, ACTION_ARM_R2) and 0 < env(ActionDuration, ACTION_ARM_SP_MOVE) and env(GetSpEffectID, 100290) == TRUE then
         ExecEventAllBody("W_AttackRightSpecial1")
         return
@@ -11459,6 +11603,7 @@ function AttackRightHeavyCounterStart_onUpdate()
 end
 
 function AttackRightHeavyCounterEnd_onUpdate()
+	ExecTravelMagnification(ATTACK_RIGHT_HEAVYCOUNTER)
     local r1 = "W_AttackRightLightSubStart"
     local b1 = "W_AttackBothLightSubStart"
     if g_ComboReset == TRUE then
@@ -11471,6 +11616,7 @@ function AttackRightHeavyCounterEnd_onUpdate()
 end
 
 function AttackBothHeavyCounterStart_onUpdate()
+	ExecTravelMagnification(ATTACK_BOTH_HEAVYCOUNTER)
     local b1 = "W_AttackBothLightSubStart"
     if g_ComboReset == TRUE then
         b1 = "W_AttackBothLight1"
@@ -11485,6 +11631,7 @@ function AttackBothHeavyCounterStart_onUpdate()
 end
 
 function AttackBothHeavyCounterEnd_onUpdate()
+	ExecTravelMagnification(ATTACK_BOTH_HEAVYCOUNTER)
     local b1 = "W_AttackBothLightSubStart"
     if g_ComboReset == TRUE then
         b1 = "W_AttackBothLight1"
@@ -14433,6 +14580,9 @@ function SwordArtsStandDodge_onUpdate()
     if ExecDamage(FALSE, FALSE) == TRUE then
         return TRUE
     end
+	if ExecBirdAct() == TRUE then
+        return TRUE
+    end
     if ExecFallAttack() == TRUE then
         return
     end
@@ -15508,6 +15658,7 @@ function PhotoShootStart_Upper_onActivate()
 end
 
 function PhotoShootStart_Upper_onUpdate()
+	act(LockonFixedAngleCancel)
     local blend_type, lower_state = GetHalfBlendInfo()
     if lower_state == LOWER_IDLE then
         act(LockonSystemUnableToTurnAngle, 45, 45)
@@ -15527,6 +15678,7 @@ function PhotoShootStart_Upper_onUpdate()
 end
 
 function PhotoShootLoop_Upper_onUpdate()
+	act(LockonFixedAngleCancel)
     local blend_type, lower_state = GetHalfBlendInfo()
     if lower_state == LOWER_IDLE then
         act(LockonSystemUnableToTurnAngle, 45, 45)
@@ -15548,6 +15700,7 @@ function PhotoShootLoop_Upper_onUpdate()
 end
 
 function PhotoShootFinish_Upper_onUpdate()
+	act(LockonFixedAngleCancel)
     local blend_type, lower_state = GetHalfBlendInfo()
     if lower_state == LOWER_IDLE then
         act(LockonSystemUnableToTurnAngle, 45, 45)
@@ -15599,7 +15752,7 @@ function PhotoShootAct_Upper_onUpdate()
     end
 end
 
-function TranceModeStart_onUpdate()
+function TranceMode_Enhance_Start_onUpdate()
     act(SetSpecialInterpolation, 0, FALSE)
     local r1 = "W_AttackRightLightSubStart"
     if g_ComboReset == TRUE then
@@ -16132,6 +16285,17 @@ end
 
 function BlinkStakeStart_onUpdate()
     env(SetSpecialInterpolation, 0, FALSE)
+	local add_blinkstake = env(Unknown9999) / 100
+    if add_blinkstake > 0 then
+        SetVariable("AddBlinkStake_Up", math.abs(add_blinkstake))
+        SetVariable("AddBlinkStake_Down", 0)
+    elseif add_blinkstake < 0 then
+        SetVariable("AddBlinkStake_Up", 0)
+        SetVariable("AddBlinkStake_Down", math.abs(add_blinkstake))
+    else
+        SetVariable("AddBlinkStake_Up", 0)
+        SetVariable("AddBlinkStake_Down", 0)
+    end
     if IsEnableSpecialAttack(HAND_RIGHT) == TRUE and 0 < env(ActionDuration, ACTION_ARM_R2) and 0 < env(ActionDuration, ACTION_ARM_SP_MOVE) and env(GetSpEffectID, 100290) == TRUE then
         ExecEventAllBody("W_AttackRightSpecial1")
         return
@@ -16143,6 +16307,13 @@ function BlinkStakeStart_onUpdate()
     if AttackCommonFunction(r1, "W_AttackRightHeavy1Start", "W_AttackLeftLight1", "W_AttackLeftHeavy1", "W_AttackBothLight1", "W_AttackBothHeavy1Start", FALSE, TRUE, 1, SET_SKILL_HAND_BOTH) == TRUE then
         return
     end
+    if env(Unknown9999) == TRUE then
+        ExecEventAllBody("W_BlinkStakeFinish")
+        return
+    end
+    if env(GetSpEffectID, 709100) == TRUE and env(Unknown9999) < 150 then
+        ExecEventAllBody("W_BlinkStakeFinish")
+    end
     if 0 >= env(ActionDurationAlternate, ACTION_ARM_R2) and 0 >= env(ActionDuration, ACTION_ARM_ULTRA) and env(GetSpEffectID, 100285) == TRUE then
         ExecEventAllBody("W_BlinkStakeCancelEarly")
         return
@@ -16152,10 +16323,61 @@ function BlinkStakeStart_onUpdate()
         ExecEventAllBody("W_Idle")
         return
     end
-    
+end
+
+function AirBlinkStakeStart_onActivate()
+    act(ResetInputQueue)
+    act(AIJumpState)
+    SetAIActionState()
+end
+
+function AirBlinkStakeStart_onUpdate()
+    local add_blinkstake = env(Unknown9999) / 100
+    if add_blinkstake > 0 then
+        SetVariable("AddBlinkStake_Up", math.abs(add_blinkstake))
+        SetVariable("AddBlinkStake_Down", 0)
+    elseif add_blinkstake < 0 then
+        SetVariable("AddBlinkStake_Up", 0)
+        SetVariable("AddBlinkStake_Down", math.abs(add_blinkstake))
+    else
+        SetVariable("AddBlinkStake_Up", 0)
+        SetVariable("AddBlinkStake_Down", 0)
+    end
+
+    if env(Unknown9999) == TRUE then
+        ExecEventAllBody("W_BlinkStakeFinish")
+        return
+    end
+
+    if env(GetSpEffectID, 709100) == TRUE and env(Unknown9999) < 150 then
+        ExecEventAllBody("W_BlinkStakeFinish")
+        return
+    end
+
+    if AirUltCommonFunction(ULT_BLINKSTAKE) == TRUE then
+        return
+    end
 end
 
 function BlinkStakeCancelEarly_onUpdate()
+	local r1 = "W_AttackRightLightSubStart"
+    if g_ComboReset == TRUE then
+        r1 = "W_AttackRightLight1"
+    end
+
+    if AttackCommonFunction(r1, "W_AttackRightHeavy1Start", "W_AttackLeftLight1", "W_AttackLeftHeavy1", "W_AttackBothLight1", "W_AttackBothHeavy1Start", FALSE, TRUE, 1, SET_SKILL_HAND_BOTH) == TRUE then
+        return
+    end
+
+    if env(IsAnimEnd, 0) == TRUE then
+        SetSkillGeneratorTransitionIndex(SET_SKILL_HAND_BOTH)
+        ExecEventAllBody("W_Idle")
+        return
+    end
+end
+
+function BlinkStakeFinish_onUpdate()
+    env(Unknown9999)
     local r1 = "W_AttackRightLightSubStart"
     if g_ComboReset == TRUE then
         r1 = "W_AttackRightLight1"
@@ -20845,6 +21067,14 @@ function SpeedUpdate()
         SetVariable("MoveTypeIndex", 2)
     elseif env(GetHeroID) == HERO_TECHNICAL then
         SetVariable("MoveTypeIndex", 0)
+	elseif env(GetHeroID) == HERO_9 then
+		SetVariable("MoveTypeIndex", 0)
+	elseif env(GetHeroID) == HERO_10 then
+		if env(GetSpEffectID, 709000) == TRUE then
+			SetVariable("MoveTypeIndex", 3)
+		else
+			SetVariable("MoveTypeIndex", 2)
+		end
     end
     if env(GetHeroID) == HERO_SPEED then
         SetVariable("MoveTypeLady", 1)
@@ -20911,10 +21141,15 @@ function SpeedUpdate()
             end
             ChangeMoveSpeedIndex(2)
         elseif runLevel < stick_level then
-            ChangeMoveSpeedIndex(1)
-            if env(GetSpEffectID, 100002) == FALSE and (GetVariable("IsEnableToggleDashTest") >= 2 or env(GetSpEffectID, 100301) == FALSE) then
-                SetVariable("ToggleDash", 0)
-            end
+			if env(GetHeroID) == HERO_10 and env(GetSpEffectID, 709000) == TRUE then
+				act(LockonFixedAngleCancel)
+				ChangeMoveSpeedIndex(2)
+			else
+				ChangeMoveSpeedIndex(1)
+				if env(GetSpEffectID, 100002) == FALSE and (GetVariable("IsEnableToggleDashTest") >= 2 or env(GetSpEffectID, 100301) == FALSE) then
+					SetVariable("ToggleDash", 0)
+				end
+			end
         else
             ChangeMoveSpeedIndex(0)
             if env(GetSpEffectID, 100002) == FALSE and (GetVariable("IsEnableToggleDashTest") >= 2 or env(GetSpEffectID, 100301) == FALSE) then
@@ -21195,11 +21430,7 @@ function Update()
     ExecRuneBonus()
 	-- Handle perma boosts to resists from consuming boluses
     ExecEnhancedResistance()
-    if env(GetBirdEventID) == 1 then
-        ExecEventAllBody("W_BirdAct_MoveStart")
-    elseif env(GetBirdEventID) == 4 then
-        ExecEventAllBody("W_Departure_MoveStart")
-    end
+    ExecBirdAct()
     GetConstVariable()
     SetStyleSpecialEffect()
     act(SwitchMotion, FALSE)
@@ -25601,6 +25832,9 @@ function Act_Jump()
     if ExecDamage(FALSE, FALSE) == TRUE then
         return TRUE
     end
+	if ExecBirdAct() == TRUE then
+		return TRUE
+	end
     if ExecFookShot() == TRUE then
         return TRUE
     end
@@ -26448,6 +26682,16 @@ function ExecWallJump()
         ISENABLE_WALLJUMP = FALSE
         return TRUE
     end
+	if env(GetHeroID) == HERO_10 and env(ActionRequest, ACTION_ARM_JUMP) == TRUE and ISENABLE_WALLJUMP == TRUE and GetVariable("JumpAttackForm") == 0 then
+		if env(GetStamina) <= 0 or height > DISABLEJUMP_FALLDIST then
+			ResetRequest()
+		elseif GetVariable("EvasionWeightIndex") == EVASION_WEIGHT_INDEX_HEAVY then
+			ResetRequest()
+		elseif ExecJump() == TRUE then
+			ISENABLE_WALLJUMP = FALSE
+			return TRUE
+		end
+	end
 end
 
 function Jump_Overweight_onActivate()
