@@ -57,6 +57,9 @@
 --				- Updated with changes from 1.03 NR DLC
 --				- Reverted DLC hero censoring
 --				- Noted new env and act calls
+-- 2025-12-10 - ccx:
+--				- Fixed an issue where Undertaker’s auto-dodge caused abnormal rolling behavior (during the skill’s active period, dodging in any direction would make you dash toward the enemy).
+--				- Also optimized Duchess’s special dodge logic to make it feel closer to the original experience.
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -9650,7 +9653,9 @@ function Rolling_onUpdate()
         act(SetMovementScaleMult, 1.5)
     end
 	-- Implemented a bandaid fix for a strange bug where back dodging once with Duchess resulted in back dodging towards the target
-    if env(GetSpEffectID, 703555) == TRUE and env(GetHeroID) == HERO_SPEED and GetVariable("RollingDirectionIndex_SelfTrans") ~= 1 then
+    -- Fixed an issue: during the skill’s active period, dodging in any direction would make you dash toward the enemy
+    -- This prevents direction reversal on consecutive rolls caused by character orientation changes
+    if env(GetSpEffectID, 703555) == TRUE and env(GetHeroID) ~= HERO_SPEED then
         act(LockonFixedAngleCancel)
     end
     if GetVariable("RollingVariationIndex") == ROLLING_CHEATDEATH then
@@ -9754,8 +9759,9 @@ end
 
 function Rolling_Selftrans_onUpdate()
     -- Implemented a bandaid fix for a strange bug where back dodging once with Duchess resulted in back dodging towards the target
-	-- This one's harder to pull off so less of a deal, and occurs in vanilla too
-    if env(GetSpEffectID, 703555) == TRUE and env(GetHeroID) == HERO_SPEED and GetVariable("RollingDirectionIndex") ~= 1 then
+    -- Fixed an issue: during the skill’s active period, dodging in any direction would make you dash toward the enemy
+    -- This prevents direction reversal on consecutive rolls caused by character orientation changes
+    if env(GetSpEffectID, 703555) == TRUE and env(GetHeroID) ~= HERO_SPEED then
         act(LockonFixedAngleCancel)
     end
     act(DisallowAdditiveTurning, TRUE)
@@ -9802,8 +9808,9 @@ end
 -- Duchess performing first dodge from another dodge
 function Rolling_Selftrans2_onUpdate()
     -- Implemented a bandaid fix for a strange bug where back dodging once with Duchess resulted in back dodging towards the target
-	-- This one's harder to pull off so less of a deal, and occurs in vanilla too
-    if env(GetSpEffectID, 703555) == TRUE and env(GetHeroID) == HERO_SPEED and GetVariable("RollingDirectionIndex") ~= 1 then
+    -- Fixed an issue: during the skill’s active period, dodging in any direction would make you dash toward the enemy
+    -- This prevents direction reversal on consecutive rolls caused by character orientation changes
+    if env(GetSpEffectID, 703555) == TRUE and env(GetHeroID) ~= HERO_SPEED then
         act(LockonFixedAngleCancel)
     end
     act(DisallowAdditiveTurning, TRUE)
