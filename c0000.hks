@@ -3,7 +3,7 @@
 -- Decompiled using the DSLuaDecompiler by ElaDiDu (fork from original by katalash)
 -- Curated at: https://github.com/ividyon/EldenRingHKS
 ------------------------------------------
--- Version 10 (For ER:NR HKS last updated in 1.03)
+-- Version 11 (For ER:NR HKS last updated in 1.03.1)
 ------------------------------------------
 -- Changelog:
 -- 2025-06-07 - Exelot: Initial Release
@@ -60,6 +60,8 @@
 -- 2025-12-10 - ccx:
 --				- Fixed an issue where Undertaker’s auto-dodge caused abnormal rolling behavior (during the skill’s active period, dodging in any direction would make you dash toward the enemy).
 --				- Also optimized Duchess’s special dodge logic to make it feel closer to the original experience.
+-- 2025-12-17 - El Fonz0:
+--				- Updated with changes from 1.03.1
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -1428,6 +1430,14 @@ function IsDemonBeastMode()
     return FALSE
 end
 
+-- Scholar Skill - Analyse
+function IsPhotoShootMode()
+	if env(GetHeroID) == HERO_BUFFER and env(GetSpEffectID, 603080) == TRUE then
+        return TRUE
+    end
+    return FALSE
+end
+
 -- Undertaker Skill - Trance
 function IsTranceMode()
 	if env(GetHeroID) == HERO_ATTACKER and (env(GetSpEffectID, 709000) == TRUE or env(GetSpEffectID, 709010) == TRUE) then
@@ -1461,6 +1471,21 @@ function IsDirectDeath()
         return TRUE
     end
     return FALSE
+end
+
+function ExecRainEffect()
+    if env(GetSpEffectID, 99872) == TRUE or env(GetSpEffectID, 99877) == TRUE then
+        act(AddSpEffect, 99881)
+        return TRUE
+    elseif env(GetSpEffectID, 99871) == TRUE or env(GetSpEffectID, 99876) == TRUE then
+        act(AddSpEffect, 99880)
+        return TRUE
+    elseif env(GetSpEffectID, 99880) == TRUE or env(GetSpEffectID, 99881) == TRUE then
+        act(AddSpEffect, 99882)
+        return TRUE
+    else
+        return FALSE
+    end
 end
 
 function ExecFookShot()
@@ -1604,6 +1629,20 @@ function ExecChangeTranceBlend()
     end
     if env(GetSpEffectID, 709020) == TRUE then
         SetVariable("AddTranceBlend", 0)
+    end
+    return FALSE
+end
+
+-- Recluse - Skill Relic
+function ExecElementalAbsorption_TerraMagicus()
+    if env(GetSpEffectID, 7032801) == TRUE then
+        return FALSE
+	-- Absorbed any element
+    elseif env(GetSpEffectID, 706000) == TRUE 
+	  or env(GetSpEffectID, 706001) == TRUE 
+	  or env(GetSpEffectID, 706002) == TRUE 
+	  or env(GetSpEffectID, 706003) == TRUE then
+        act(AddSpEffect, 7032801)
     end
     return FALSE
 end
@@ -4554,6 +4593,9 @@ function ExecJump()
 			SetVariable("IndexSuperJump", 6)
 		elseif env(GetSpEffectID, 98215) == TRUE then
             SetVariable("IndexSuperJump", 7)
+			if IsFookShotMode() == TRUE then
+				ExecFookShotModeEnd()
+			end
         elseif env(GetSpEffectID, 98217) == TRUE then
             SetVariable("IndexSuperJump", 8)
         elseif env(GetSpEffectID, 98218) == TRUE then
@@ -4861,6 +4903,10 @@ function ExecGroundNonCombatAreaEnter(hand, is_force, blend_type, no_reset)
     if IsDemonBeastMode() == TRUE then
         return FALSE
     end
+	if IsPhotoShootMode() == TRUE then
+		ExecEventHalfBlend(Event_PhotoShootFinish, blend_type)
+		return
+	end
     if env(GetSpEffectID, 601000) == TRUE then
         SetVariable("AddNonCombatAreaEnterBlend", 1)
         ExecEventNoReset("W_AddNonCombatAreaEnter")
@@ -6098,7 +6144,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
         ExecEventAllBody("W_DamageMad")
         return TRUE
     end
-	-- Gnoster  Trigger parasite from Faurtis's roar
+	-- Gnoster - Trigger parasite from Faurtis's roar
     if env(GetSpEffectID, 46006) == TRUE 
 	  and (env(GetSpEffectID, 46000) == TRUE 
 	  or env(GetSpEffectID, 46001) == TRUE 
@@ -6112,8 +6158,20 @@ function ExecDamage(is_parry, is_attackwhileguard)
         if damage_level == DAMAGE_LEVEL_NONE then
             if IsNodeActive("SwordArtsOneShot Selector") == TRUE and c_SwordArtsID == 136 then
             elseif IsNodeActive("BloodMagicStart_CMSG") == TRUE and env(GetSpEffectID, 7032900) == TRUE then
-            else
-                damage_level = DAMAGE_LEVEL_SMALL
+            elseif env(GetSpEffectID, 22200) ~= TRUE 
+			  and env(GetSpEffectID, 22201) ~= TRUE 
+			  and env(GetSpEffectID, 22202) ~= TRUE 
+			  and env(GetSpEffectID, 22203) ~= TRUE 
+			  and env(GetSpEffectID, 22204) ~= TRUE 
+			  and env(GetSpEffectID, 22205) ~= TRUE 
+			  and env(GetSpEffectID, 22206) ~= TRUE 
+			  and env(GetSpEffectID, 22207) ~= TRUE 
+			  and env(GetSpEffectID, 22208) ~= TRUE 
+			  and env(GetSpEffectID, 22209) ~= TRUE then
+                if env(GetSpEffectID, 22210) == TRUE then
+                else
+                    damage_level = DAMAGE_LEVEL_SMALL
+                end
             end
         elseif damage_level ~= DAMAGE_LEVEL_SMALL and damage_level ~= DAMAGE_LEVEL_MIDDLE and damage_level == DAMAGE_LEVEL_MINIMUM then
         end
@@ -9362,6 +9420,7 @@ end
 
 function NearDeathCommonFunction()
     act(SetAllowedThrowDefenseType, 255)
+	SetVariable("IsAutoRevival", 0)
     local damage_type = env(GetReceivedDamageType)
     if damage_type == DAMAGE_TYPE_DEATH_FALLING then
         ExecEventAllBody("W_NearDeathEnd")
@@ -9390,10 +9449,13 @@ function NearDeathCommonFunction()
             return TRUE
         end
 		-- Revive upon Immortal March, Solo Auto Revive, Favor of Noklateo, or Wending Grace
-		-- Or a new thing
+		-- Or Power to Balance the Word
         if env(GetSpEffectID, 705020) == TRUE or env(GetSpEffectID, 6999505) == TRUE 
 		  or env(GetSpEffectID, 6999105) == TRUE or env(GetSpEffectID, 540150) == TRUE
 		  or env(GetSpEffectID, 8970061) == TRUE then
+			if env(GetSpEffectID, 8970061) == TRUE then
+				SetVariable("IsAutoRevival", 1)
+			end
             ExecEventAllBody("W_NearDeathRevival")
             return TRUE
         end
@@ -10547,6 +10609,7 @@ end
 
 function NearDeathStart_onUpdate()
     act(SetAllowedThrowDefenseType, 255)
+	SetVariable("IsAutoRevival", 0)
     local damage_type = env(GetReceivedDamageType)
     if damage_type == DAMAGE_TYPE_DEATH_FALLING then
         ExecEventAllBody("W_NearDeathEnd")
@@ -11624,8 +11687,12 @@ end
 function AttackBothHeavy1Start_onUpdate()
     SPEED_COMBO_NUMBER_BOTH = 1
     ExecTravelMagnification(ATTACK_BOTH_HEAVY1START)
+	ExecGuardBuff()
     act(SetSpecialInterpolation, 0, FALSE)
-    if IsEnableSpecialAttack(HAND_RIGHT) == TRUE and 0 < env(ActionDuration, ACTION_ARM_R2) and 0 < env(ActionDuration, ACTION_ARM_SP_MOVE) and env(GetSpEffectID, 100290) == TRUE then
+    if IsEnableSpecialAttack(HAND_RIGHT) == TRUE 
+	  and 0 < env(ActionDuration, ACTION_ARM_R2) 
+	  and 0 < env(ActionDuration, ACTION_ARM_SP_MOVE) 
+	  and env(GetSpEffectID, 100290) == TRUE then
         ExecEventAllBody("W_AttackBothSpecial1")
         return
     end
@@ -11645,6 +11712,7 @@ end
 function AttackBothHeavy1End_onUpdate()
     SPEED_COMBO_NUMBER_BOTH = 1
     ExecTravelMagnification(ATTACK_BOTH_HEAVY1END)
+	ExecGuardBuff()
     local b1 = "W_AttackBothLightSubStart"
     if g_ComboReset == TRUE then
         b1 = "W_AttackBothLight1"
@@ -11686,7 +11754,11 @@ function AttackBothHeavy1UpEnd_onUpdate()
 end
 
 function AttackBothHeavy2Start_onUpdate()
-    if IsEnableSpecialAttack(HAND_RIGHT) == TRUE and env(ActionDuration, ACTION_ARM_R2) > 0 and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 and env(GetSpEffectID, 100290) == TRUE then
+	ExecGuardBuff()
+    if IsEnableSpecialAttack(HAND_RIGHT) == TRUE 
+	  and env(ActionDuration, ACTION_ARM_R2) > 0 
+	  and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 
+	  and env(GetSpEffectID, 100290) == TRUE then
         ExecEventAllBody("W_AttackBothSpecial2")
         return
     end
@@ -11706,7 +11778,11 @@ function AttackBothHeavy2End_onUpdate()
 end
 
 function AttackBothHeavy2UpStart_onUpdate()
-    if IsEnableSpecialAttack(HAND_RIGHT) == TRUE and env(ActionDuration, ACTION_ARM_R2) > 0 and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 and env(GetSpEffectID, 100290) == TRUE then
+	ExecGuardBuff()
+    if IsEnableSpecialAttack(HAND_RIGHT) == TRUE 
+	  and env(ActionDuration, ACTION_ARM_R2) > 0 
+	  and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 
+	  and env(GetSpEffectID, 100290) == TRUE then
         ExecEventAllBody("W_AttackBothSpecial2")
         return
     end
@@ -15763,6 +15839,7 @@ function ElementalAbsorptionFinish_Upper_onActivate()
 end
 
 function ElementalAbsorptionFinish_Upper_onUpdate()
+	ExecElementalAbsorption_TerraMagicus()
     local blend_type, lower_state = GetHalfBlendInfo()
     if lower_state == LOWER_IDLE then
         act(LockonSystemUnableToTurnAngle, 45, 45)
@@ -15825,6 +15902,7 @@ function ElementalAbsorption2Finish_Upper_onActivate()
 end
 
 function ElementalAbsorption2Finish_Upper_onUpdate()
+	ExecElementalAbsorption_TerraMagicus()
     local blend_type, lower_state = GetHalfBlendInfo()
     if lower_state == LOWER_IDLE then
         act(LockonSystemUnableToTurnAngle, 45, 45)
@@ -15887,6 +15965,7 @@ function ElementalAbsorption3Finish_Upper_onActivate()
 end
 
 function ElementalAbsorption3Finish_Upper_onUpdate()
+	ExecElementalAbsorption_TerraMagicus()
     local blend_type, lower_state = GetHalfBlendInfo()
     if lower_state == LOWER_IDLE then
         act(LockonSystemUnableToTurnAngle, 45, 45)
@@ -15961,6 +16040,7 @@ function DemonSwordStanceEnd_Upper_onActivate()
 end
 
 function DemonSwordStanceEnd_Upper_onUpdate()
+	ExecGuardBuff()
     local blend_type, lower_state = GetHalfBlendInfo()
     if lower_state == LOWER_IDLE then
         act(LockonSystemUnableToTurnAngle, 45, 45)
@@ -16138,8 +16218,11 @@ function AirUltCommonFunction(act_type)
     if Act_Jump() == TRUE then
         return
     end
-    local height = env(GetFallHeight) / 100
-    if env(IsHamariFallDeath, 12) == TRUE or damage_type == DAMAGE_TYPE_DEATH_FALLING or height >= 150 then
+	if act_type == ULT_DRAGOONJUMP and env(GetSpEffectID, 701505) == FALSE then
+		ExecEventAllBody("W_FallDeath")
+		return TRUE
+	end
+    if env(IsHamariFallDeath, 12) == TRUE or damage_type == DAMAGE_TYPE_DEATH_FALLING then
         ExecEventAllBody("W_FallDeath")
         return TRUE
     end
@@ -19934,6 +20017,16 @@ function Event60491_onActivate()
 end
 
 function Event60491_onUpdate()
+    if EventCommonFunction() == TRUE then
+        return
+    end
+end
+
+function Event60492_onActivate()
+    ResetEventState()
+end
+
+function Event60492_onUpdate()
     if EventCommonFunction() == TRUE then
         return
     end
