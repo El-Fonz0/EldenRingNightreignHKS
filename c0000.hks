@@ -62,6 +62,9 @@
 --				- Also optimized Duchess’s special dodge logic to make it feel closer to the original experience.
 -- 2025-12-17 - El Fonz0:
 --				- Updated with changes from 1.03.1
+-- 2026-1-11 - El Fonz0
+--				- Added some comments on slowing effects and the switching affinity buff relic effect
+--				- Noted possibilities on some unk env calls
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -199,18 +202,23 @@ function SetWeightIndex()
 end
 
 function SetSlowFeet()
+    -- Ironjar Aromatic
     if env(GetSpEffectID, 503520) == TRUE then
         return TRUE
     elseif env(GetSpEffectID, 5520) == TRUE then
         return TRUE
+	-- Slug Spit
     elseif env(GetSpEffectID, 425) == TRUE then
         return TRUE
+	-- Duke's Dear Freja Webs
     elseif env(GetSpEffectID, 426) == TRUE then
         return TRUE
     elseif env(GetSpEffectID, 42312) == TRUE then
         return TRUE
+	-- In Swamp
     elseif env(GetSpEffectID, 4101) == TRUE then
         return TRUE
+	-- In Swamp - No Heavy Rolls
     elseif env(GetSpEffectID, 4100) == TRUE then
         return TRUE
     elseif env(GetSpEffectID, 46328) == TRUE or env(GetSpEffectID, 46329) == TRUE then
@@ -1457,7 +1465,7 @@ function IsDirectDeath()
 		-- Check if player is vs a Night boss/Nightlord
         if env(GetSpEffectID, 102120) == TRUE then
 			-- Check if player doesn't have auto revival from a Wending Grace, Favor of Noklateo, or Solo Revival
-			-- DLC - Check another effect
+			-- DLC - Check Power to Balance the World
             if env(GetSpEffectID, 540155) == FALSE and env(GetSpEffectID, 6999100) == FALSE 
 			  and env(GetSpEffectID, 6999500) == FALSE and env(GetSpEffectID, 8970061) == FALSE then
                 return TRUE
@@ -1532,7 +1540,14 @@ function ExecChangeDejavuBlend()
     if GetVariable("AddDejavuBlend") ~= 1 then
         return FALSE
     end
-    if GetVariable("IndexDejavuBlend") == 2 or IsNodeActive("Idle_CMSG") == TRUE or IsNodeActive("Move_Upper Selector") == TRUE or IsNodeActive("Stop_SM") == TRUE or IsNodeActive("Rolling_CMSG") == TRUE or IsNodeActive("Rolling_Selftrans_CMSG") == TRUE or IsNodeActive("LadyBackStep_Selector") == TRUE or IsNodeActive("LadyBackStep2_Selector") == TRUE then
+    if GetVariable("IndexDejavuBlend") == 2 
+	  or IsNodeActive("Idle_CMSG") == TRUE 
+	  or IsNodeActive("Move_Upper Selector") == TRUE 
+	  or IsNodeActive("Stop_SM") == TRUE 
+	  or IsNodeActive("Rolling_CMSG") == TRUE 
+	  or IsNodeActive("Rolling_Selftrans_CMSG") == TRUE 
+	  or IsNodeActive("LadyBackStep_Selector") == TRUE 
+	  or IsNodeActive("LadyBackStep2_Selector") == TRUE then
     elseif IsNodeActive("NewJump Script") == TRUE and GetVariable("JumpAttackForm") == 0 then
     else
         SetVariable("IndexDejavuBlend", 2)
@@ -9044,35 +9059,45 @@ end
 
 function WeaponChangeCommonFunction(blend_type)
     SetAIActionState()
-    if env(GetSpEffectID, 7035700) == TRUE and env(GetSpEffectID, 7035701) == TRUE and env(GetSpEffectID, 7035718) == FALSE and env(GetSpEffectID, 7035719) == FALSE and env(GetSpEffectID, 7035720) == FALSE and env(GetSpEffectID, 7035721) == FALSE then
+	-- Relic Effect: Switching Weapons Adds an Affinity Attack
+    if env(GetSpEffectID, 7035700) == TRUE 
+	  and env(GetSpEffectID, 7035701) == TRUE -- Trigger
+	  and env(GetSpEffectID, 7035718) == FALSE 
+	  and env(GetSpEffectID, 7035719) == FALSE 
+	  and env(GetSpEffectID, 7035720) == FALSE 
+	  and env(GetSpEffectID, 7035721) == FALSE then
         local rand = math.random(1, 100)
+		-- Apply Magic buff
         if rand >= 75 then
-            act(AddSpEffect, 7035718)
+            act(AddSpEffect, 7035718) -- Cooldown
             if RELIC_WEAPONCHANGE_ENCHANT == 0 then
-                act(AddSpEffect, 7035702)
+                act(AddSpEffect, 7035702) -- Right
             else
-                act(AddSpEffect, 7035704)
+                act(AddSpEffect, 7035704) -- Left
             end
+		-- Apply Fire buff
         elseif rand >= 50 then
-            act(AddSpEffect, 7035719)
+            act(AddSpEffect, 7035719) -- Cooldown
             if RELIC_WEAPONCHANGE_ENCHANT == 0 then
-                act(AddSpEffect, 7035706)
+                act(AddSpEffect, 7035706) -- Right
             else
-                act(AddSpEffect, 7035708)
+                act(AddSpEffect, 7035708) -- Left
             end
+		-- Apply Lightning buff
         elseif rand >= 25 then
-            act(AddSpEffect, 7035720)
+            act(AddSpEffect, 7035720) -- Cooldown
             if RELIC_WEAPONCHANGE_ENCHANT == 0 then
-                act(AddSpEffect, 7035710)
+                act(AddSpEffect, 7035710) -- Right
             else
-                act(AddSpEffect, 7035712)
+                act(AddSpEffect, 7035712) -- Left
             end
+		-- Apply Holy buff
         else
-            act(AddSpEffect, 7035721)
+            act(AddSpEffect, 7035721) -- Cooldown
             if RELIC_WEAPONCHANGE_ENCHANT == 0 then
-                act(AddSpEffect, 7035714)
+                act(AddSpEffect, 7035714) -- Right
             else
-                act(AddSpEffect, 7035716)
+                act(AddSpEffect, 7035716) -- Left
             end
         end
     end
@@ -9449,7 +9474,7 @@ function NearDeathCommonFunction()
             return TRUE
         end
 		-- Revive upon Immortal March, Solo Auto Revive, Favor of Noklateo, or Wending Grace
-		-- Or Power to Balance the Word
+		-- Or Power to Balance the World
         if env(GetSpEffectID, 705020) == TRUE or env(GetSpEffectID, 6999505) == TRUE 
 		  or env(GetSpEffectID, 6999105) == TRUE or env(GetSpEffectID, 540150) == TRUE
 		  or env(GetSpEffectID, 8970061) == TRUE then
@@ -21529,7 +21554,12 @@ function SpeedUpdate()
         if SetSlowFeet() == TRUE then
             specialeffect_heavy = 1
         end
-        if ISENABLE_SPRINTSTART == TRUE and env(ActionDuration, ACTION_ARM_L3) > 0 and specialeffect_heavy == 0 and env(GetStamina) >= 0 and env(GetSpEffectID, 102610) == FALSE and env(GetSpEffectID, 102001) == FALSE then
+        if ISENABLE_SPRINTSTART == TRUE 
+		  and env(ActionDuration, ACTION_ARM_L3) > 0 
+		  and specialeffect_heavy == 0 
+		  and env(GetStamina) >= 0 
+		  and env(GetSpEffectID, 102610) == FALSE 
+		  and env(GetSpEffectID, 102001) == FALSE then
             ExecSprintStart()
         elseif stick_level > 1.1 then
             if IsNodeActive("FookShotFire_Walk_Upper_CMSG") == FALSE then
@@ -29749,12 +29779,13 @@ GetBirdPathEscapeTime = 384
 GetDemonBeastHP = 386
 GetDemonBeastUltimatePercent = 387
 GetMarkingDamageID = 388
-Unknown389 = 389
+Unknown389 = 389 -- Game mode?
 IsCheatDeathTriggered = 391
 GetCheatDeathAtkDirection = 392
+Unknown393 = 393 -- Sub Poise?
 GetBirdMovementDirectionTime = 394 -- args: <unknown>
 GetBirdActionID = 395
-GetElementalDamageCounter = 399 -- NOTE: could be something else, there was a Sub Poise kind of system noted recently
+GetElementalDamageCounter = 399
 
 GetPoise = 400
 GetMaxPoise = 402
