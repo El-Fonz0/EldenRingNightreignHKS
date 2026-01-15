@@ -1,7 +1,7 @@
 ------------------------------------------
 -- Fixed decompiled c0000.hks for ELDEN RING: NIGHTREIGHN
 -- Decompiled using the DSLuaDecompiler by ElaDiDu (fork from original by katalash)
--- Curated at: https://github.com/ividyon/EldenRingHKS
+-- Curated at: https://github.com/El-Fonz0/EldenRingNightreignHKS
 ------------------------------------------
 -- Version 11 (For ER:NR HKS last updated in 1.03.1)
 ------------------------------------------
@@ -65,6 +65,11 @@
 -- 2026-1-11 - El Fonz0
 --				- Added some comments on slowing effects and the switching affinity buff relic effect
 --				- Noted possibilities on some unk env calls
+-- 2026-1-14 - El Fonz0
+--				- Noted more env calls and provided some alternate names for some
+--				- Changed some env/act call names
+--				- Added alternate enums for hero names
+--				- Changed github link
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -6112,7 +6117,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
     local damage_type = env(GetReceivedDamageType)
     local is_demonsword_justguard = FALSE
     if env(GetSpEffectType, 32) == TRUE then
-        act(SetDamageAnimType, DAMAGE_FLAG_SMALL)
+        act(SetKnockbackFlag, DAMAGE_FLAG_SMALL)
         ResetRequest()
         ExecEventAllBody("W_DamageBind")
         Replanning()
@@ -6234,16 +6239,16 @@ function ExecDamage(is_parry, is_attackwhileguard)
                 SetVariable("GuardDamageIndex", 0)
             end
             if damage_level == DAMAGE_LEVEL_NONE or damage_level == DAMAGE_LEVEL_MINIMUM then
-                act(SetDamageAnimType, DAMAGE_FLAG_SMALL)
+                act(SetKnockbackFlag, DAMAGE_FLAG_SMALL)
                 ExecEventAllBody("W_Repelled_Small")
             elseif damage_level == DAMAGE_LEVEL_SMALL then
-                act(SetDamageAnimType, DAMAGE_FLAG_SMALL)
+                act(SetKnockbackFlag, DAMAGE_FLAG_SMALL)
                 ExecEventAllBody("W_Repelled_Small")
             elseif damage_level == DAMAGE_LEVEL_MIDDLE or damage_level == DAMAGE_LEVEL_LARGE or damage_level == DAMAGE_LEVEL_EXLARGE or damage_level == DAMAGE_LEVEL_PUSH or damage_level == DAMAGE_LEVEL_FLING or damage_level == DAMAGE_LEVEL_SMALL_BLOW or damage_level == DAMAGE_LEVEL_UPPER or damage_level == DAMAGE_LEVEL_EX_BLAST or damage_level == DAMAGE_LEVEL_BREATH then
-                act(SetDamageAnimType, DAMAGE_FLAG_LARGE)
+                act(SetKnockbackFlag, DAMAGE_FLAG_LARGE)
                 ExecEventAllBody("W_Repelled_Large")
             else
-                act(SetDamageAnimType, DAMAGE_FLAG_SMALL)
+                act(SetKnockbackFlag, DAMAGE_FLAG_SMALL)
                 ExecEventAllBody("W_Repelled_Small")
             end
             return TRUE
@@ -6294,7 +6299,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
                     SetVariable("IndexGuard", 4)
                 end
             end
-            act(SetDamageAnimType, DAMAGE_FLAG_GUARD_BREAK)
+            act(SetKnockbackFlag, DAMAGE_FLAG_GUARD_BREAK)
             if c_SwordArtsID == 202 and style == HAND_RIGHT and c_SwordArtsHand == HAND_RIGHT then
                 ExecEventAllBody("W_GuardBreakRight")
             else
@@ -6307,7 +6312,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
             else
                 SetVariable("GuardDamageIndex", 0)
             end
-            act(SetDamageAnimType, DAMAGE_FLAG_GUARD_BREAK)
+            act(SetKnockbackFlag, DAMAGE_FLAG_GUARD_BREAK)
             ExecEventAllBody("W_Repelled_Wall")
             return TRUE
         elseif damage_type == DAMAGE_TYPE_WALL_LEFT then
@@ -6316,15 +6321,15 @@ function ExecDamage(is_parry, is_attackwhileguard)
             else
                 SetVariable("GuardDamageIndex", 2)
             end
-            act(SetDamageAnimType, DAMAGE_FLAG_GUARD_BREAK)
+            act(SetKnockbackFlag, DAMAGE_FLAG_GUARD_BREAK)
             ExecEventAllBody("W_Repelled_Wall")
             return TRUE
         elseif damage_type == DAMAGE_TYPE_GUARDBREAK_BLAST then
-            act(SetDamageAnimType, DAMAGE_FLAG_SMALL_BLOW)
+            act(SetKnockbackFlag, DAMAGE_FLAG_SMALL_BLOW)
             ExecEventAllBody("W_DamageLv7_SmallBlow")
             return TRUE
         elseif damage_type == DAMAGE_TYPE_GUARDBREAK_FLING then
-            act(SetDamageAnimType, DAMAGE_FLAG_FLING)
+            act(SetKnockbackFlag, DAMAGE_FLAG_FLING)
             ExecEventAllBody("W_DamageLv6_Fling")
             return TRUE
         end
@@ -6403,16 +6408,16 @@ function ExecDamage(is_parry, is_attackwhileguard)
             elseif IsNodeActive("DemonSwordStanceEnd_Upper_CMSG") == TRUE then
                 ExecEventAllBody("W_GuardDamageDemonSword_End")
             elseif guard_damage_level == 1 then
-                act(SetDamageAnimType, DAMAGE_FLAG_GUARD_SMALL)
+                act(SetKnockbackFlag, DAMAGE_FLAG_GUARD_SMALL)
                 ExecEventAllBody("W_GuardDamageSmall")
             elseif guard_damage_level == 3 then
-                act(SetDamageAnimType, DAMAGE_FLAG_GUARD_LARGE)
+                act(SetKnockbackFlag, DAMAGE_FLAG_GUARD_LARGE)
                 ExecEventAllBody("W_GuardDamageMiddle")
             elseif guard_damage_level == 4 then
-                act(SetDamageAnimType, DAMAGE_FLAG_GUARD_EXLARGE)
+                act(SetKnockbackFlag, DAMAGE_FLAG_GUARD_EXLARGE)
                 ExecEventAllBody("W_GuardDamageLarge")
             else
-                act(SetDamageAnimType, DAMAGE_FLAG_GUARD_LARGE)
+                act(SetKnockbackFlag, DAMAGE_FLAG_GUARD_LARGE)
                 ExecEventAllBody("W_GuardDamageMiddle")
             end
             return TRUE
@@ -6443,7 +6448,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
             act(RequestAIJumpInterupt)
             hkbFireEvent("W_JumpDamage_Start")
             SetVariable("Int16Variable04", 0)
-            act(SetDamageAnimType, 3)
+            act(SetKnockbackFlag, 3)
             ResetRequest()
             return TRUE
         else
@@ -6457,7 +6462,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
     if env(GetIsWeakPoint) == TRUE and env(GetSpEffectID, 5760) == FALSE then
         CalcDamageCount()
         SetVariable("DamageDirection", damage_angle)
-        act(SetDamageAnimType, DAMAGE_FLAG_WEAK)
+        act(SetKnockbackFlag, DAMAGE_FLAG_WEAK)
         act(AddSpEffect, 5760)
         ExecEventAllBody("W_DamageWeak")
         Replanning()
@@ -6508,7 +6513,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
             CalcDamageCount()
             SetVariable("DamageDirection", damage_angle)
             SetVariable("IndexDamageLv1_Small_AttackDirection", attack_dir)
-            act(SetDamageAnimType, DAMAGE_FLAG_SMALL)
+            act(SetKnockbackFlag, DAMAGE_FLAG_SMALL)
             ExecEventAllBody("W_DamageLv1_Small")
             Replanning()
             return TRUE
@@ -6516,7 +6521,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
             CalcDamageCount()
             SetVariable("DamageDirection", damage_angle)
             SetVariable("IndexDamageLv2_Middle_AttackDirection", attack_dir)
-            act(SetDamageAnimType, DAMAGE_FLAG_MEDIUM)
+            act(SetKnockbackFlag, DAMAGE_FLAG_MEDIUM)
             ExecEventAllBody("W_DamageLv2_Middle")
             Replanning()
             return TRUE
@@ -6524,7 +6529,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
             CalcDamageCount()
             SetVariable("DamageDirection", damage_angle)
             SetVariable("IndexDamageLv3_Large_AttackDirection", attack_dir)
-            act(SetDamageAnimType, DAMAGE_FLAG_LARGE)
+            act(SetKnockbackFlag, DAMAGE_FLAG_LARGE)
             Replanning()
             if env(GetBehaviorID, 3) == TRUE then
                 ExecEventAllBody("W_DamageLarge2")
@@ -6536,14 +6541,14 @@ function ExecDamage(is_parry, is_attackwhileguard)
         elseif damage_level == DAMAGE_LEVEL_EXLARGE then
             ResetDamageCount()
             SetVariable("DamageDirection", damage_angle)
-            act(SetDamageAnimType, DAMAGE_FLAG_LARGE_BLOW)
+            act(SetKnockbackFlag, DAMAGE_FLAG_LARGE_BLOW)
             ExecEventAllBody("W_DamageLv4_ExLarge")
             Replanning()
             return TRUE
         elseif damage_level == DAMAGE_LEVEL_EX_BLAST then
             ResetDamageCount()
             SetVariable("DamageDirection", damage_angle)
-            act(SetDamageAnimType, DAMAGE_FLAG_LARGE_BLOW)
+            act(SetKnockbackFlag, DAMAGE_FLAG_LARGE_BLOW)
             ExecEventAllBody("W_DamageLV10_ExBlast")
             Replanning()
             return TRUE
@@ -6551,14 +6556,14 @@ function ExecDamage(is_parry, is_attackwhileguard)
             if env(GetBehaviorID, BEH_IDENTIFIER_FOOKSHOTPULL) == TRUE then
                 CalcDamageCount()
                 SetVariable("DamageDirection", damage_angle)
-                act(SetDamageAnimType, DAMAGE_FLAG_PUSH, FOOKSHOT_KNOCKBACK_RATE)
+                act(SetKnockbackFlag, DAMAGE_FLAG_PUSH, FOOKSHOT_KNOCKBACK_RATE)
                 ExecEventAllBody("W_DamageLv5_Push")
                 Replanning()
                 return TRUE
             else
                 CalcDamageCount()
                 SetVariable("DamageDirection", damage_angle)
-                act(SetDamageAnimType, DAMAGE_FLAG_PUSH)
+                act(SetKnockbackFlag, DAMAGE_FLAG_PUSH)
                 ExecEventAllBody("W_DamageLv5_Push")
                 Replanning()
                 return TRUE
@@ -6566,14 +6571,14 @@ function ExecDamage(is_parry, is_attackwhileguard)
         elseif damage_level == DAMAGE_LEVEL_SMALL_BLOW then
             ResetDamageCount()
             SetVariable("DamageDirection", damage_angle)
-            act(SetDamageAnimType, DAMAGE_FLAG_SMALL_BLOW)
+            act(SetKnockbackFlag, DAMAGE_FLAG_SMALL_BLOW)
             ExecEventAllBody("W_DamageLv7_SmallBlow")
             Replanning()
             return TRUE
         elseif damage_level == DAMAGE_LEVEL_UPPER then
             ResetDamageCount()
             SetVariable("DamageDirection", damage_angle)
-            act(SetDamageAnimType, DAMAGE_FLAG_LARGE_BLOW)
+            act(SetKnockbackFlag, DAMAGE_FLAG_LARGE_BLOW)
             ExecEventAllBody("W_DamageLv9_Upper")
             Replanning()
             return TRUE
@@ -6582,21 +6587,21 @@ function ExecDamage(is_parry, is_attackwhileguard)
             local pre_index = GetVariable("IndexDamageLv8_Minimum_Random")
             local index = (pre_index + math.random(1, 2)) % 3
             SetVariable("IndexDamageLv8_Minimum_Random", index)
-            act(SetDamageAnimType, DAMAGE_FLAG_MINIMUM)
+            act(SetKnockbackFlag, DAMAGE_FLAG_MINIMUM)
             ExecEventAllBody("W_DamageLv8_Minimum")
             Replanning()
             return TRUE
         elseif damage_level == DAMAGE_LEVEL_FLING then
             ResetDamageCount()
             SetVariable("DamageDirection", damage_angle)
-            act(SetDamageAnimType, DAMAGE_FLAG_FLING)
+            act(SetKnockbackFlag, DAMAGE_FLAG_FLING)
             ExecEventAllBody("W_DamageLv6_Fling")
             Replanning()
             return TRUE
         elseif damage_level == DAMAGE_LEVEL_BREATH then
             ResetDamageCount()
             SetVariable("DamageDirection", damage_angle)
-            act(SetDamageAnimType, DAMAGE_FLAG_BREATH)
+            act(SetKnockbackFlag, DAMAGE_FLAG_BREATH)
             ExecEventAllBody("W_DamageLv11_Breath")
             Replanning()
             return TRUE
@@ -22079,10 +22084,10 @@ end
 function Ride_Update()
     if IsEnableFeedAddBlend == TRUE then
         Ride_Feed_Rate = 1
-        act(ApplyRideBlend, "Ride_Feed_AddBlend", 1)
+        act(SetMountHavokVariable, "Ride_Feed_AddBlend", 1)
     else
         Ride_Feed_Rate = ConvergeValue(0, Ride_Feed_Rate, 4, 4)
-        act(ApplyRideBlend, "Ride_Feed_AddBlend", Ride_Feed_Rate)
+        act(SetMountHavokVariable, "Ride_Feed_AddBlend", Ride_Feed_Rate)
     end
     if RIDE_ISENABLE_DOUBLEJUMP == FALSE and env(IsMountInFallLoop) == TRUE then
         RIDE_ISENABLE_DOUBLEJUMP = TRUE
@@ -22278,11 +22283,11 @@ function ExecRideDamage()
         end
         if damage_level == DAMAGE_LEVEL_NONE or damage_level == DAMAGE_LEVEL_MINIMUM or damage_level == DAMAGE_LEVEL_SMALL then
             SetVariable("DamageDirection", 2)
-            act(SetDamageAnimType, DAMAGE_FLAG_SMALL)
+            act(SetKnockbackFlag, DAMAGE_FLAG_SMALL)
             ExecEventAllBody("W_RideRepelledSmall")
             return TRUE
         else
-            act(SetDamageAnimType, DAMAGE_FLAG_LARGE)
+            act(SetKnockbackFlag, DAMAGE_FLAG_LARGE)
             SetVariable("DamageDirection", 2)
             ExecEventAllBody("W_RideRepelledLarge")
             return TRUE
@@ -22296,10 +22301,10 @@ function ExecRideDamage()
         end
         FireRideEvent("W_Ride_SA_Add_Guard", "W_Ride_SA_Add", FALSE)
         SetVariable("Ride_SA_Add_Blend", 1)
-        act(ApplyRideBlend, "Ride_SA_Add_Blend", 1)
+        act(SetMountHavokVariable, "Ride_SA_Add_Blend", 1)
         return FALSE
     elseif damage_type == DAMAGE_TYPE_GUARDBREAK then
-        act(SetDamageAnimType, DAMAGE_FLAG_LARGE)
+        act(SetKnockbackFlag, DAMAGE_FLAG_LARGE)
         SetVariable("DamageDirection", 2)
         ExecEventAllBody("W_RideRepelledLarge")
         return TRUE
@@ -22323,19 +22328,19 @@ function ExecRideDamage()
     end
     if (env(GetSpecialAttribute) == 5 or env(GetMountSpecialAttribute) == 5) and GetVariable("MoveSpeedLevel") > 1.5 then
         SetVariable("DamageDirection", 2)
-        act(ApplyRideBlend, "DamageDirection", 2)
+        act(SetMountHavokVariable, "DamageDirection", 2)
         SetVariable("RideDamageDefaultState", 1)
-        act(ApplyRideBlend, "RideDamageDefaultState", 1)
-        act(ApplyDamageFlag, DAMAGE_FLAG_MIDDLE)
+        act(SetMountHavokVariable, "RideDamageDefaultState", 1)
+        act(SetMountDamageFlag, DAMAGE_FLAG_MIDDLE)
         Replanning()
         FireRideEvent("W_RideDamageMiddle", "W_Ride_DamageMiddle", FALSE)
         return TRUE
     elseif env(GetSpecialAttribute) == 8 or env(GetMountSpecialAttribute) == 8 then
         SetVariable("DamageDirection", 2)
-        act(ApplyRideBlend, "DamageDirection", 2)
+        act(SetMountHavokVariable, "DamageDirection", 2)
         SetVariable("RideDamageDefaultState", 1)
-        act(ApplyRideBlend, "RideDamageDefaultState", 1)
-        act(ApplyDamageFlag, DAMAGE_FLAG_MIDDLE)
+        act(SetMountHavokVariable, "RideDamageDefaultState", 1)
+        act(SetMountDamageFlag, DAMAGE_FLAG_MIDDLE)
         Replanning()
         FireRideEvent("W_RideDamageMiddle", "W_Ride_DamageMiddle", FALSE)
         return TRUE
@@ -22350,23 +22355,23 @@ function ExecRideDamage()
         return FALSE
     end
     SetVariable("BlendRideDamageFire", 0)
-    act(ApplyRideBlend, "BlendRideDamageFire", 0)
+    act(SetMountHavokVariable, "BlendRideDamageFire", 0)
     SetVariable("Ride_SA_Add_Blend", 0)
-    act(ApplyRideBlend, "Ride_SA_Add_Blend", 0)
+    act(SetMountHavokVariable, "Ride_SA_Add_Blend", 0)
     if env(GetSpecialAttribute) == 5 or env(GetSpecialAttribute) == 8 or env(GetMountSpecialAttribute) == 5 or env(GetMountSpecialAttribute) == 8 then
         return FALSE
     end
     if env(GetIsWeakPoint) == TRUE then
         SetVariable("DamageDirection", 2)
-        act(ApplyRideBlend, "DamageDirection", 2)
-        act(ApplyDamageFlag, DAMAGE_FLAG_WEAK)
+        act(SetMountHavokVariable, "DamageDirection", 2)
+        act(SetMountDamageFlag, DAMAGE_FLAG_WEAK)
         FireRideEvent("W_RideDamageWeakTop", "W_Ride_DamageWeakTop", FALSE)
         Replanning()
         return TRUE
     elseif env(GetMountIsWeakPoint) == TRUE then
         SetVariable("DamageDirection", 2)
-        act(ApplyRideBlend, "DamageDirection", 2)
-        act(ApplyDamageFlag, DAMAGE_FLAG_WEAK)
+        act(SetMountHavokVariable, "DamageDirection", 2)
+        act(SetMountDamageFlag, DAMAGE_FLAG_WEAK)
         FireRideEvent("W_RideDamageWeakUnder", "W_Ride_DamageWeakUnder", FALSE)
         Replanning()
         return TRUE
@@ -22376,64 +22381,64 @@ function ExecRideDamage()
             damage_angle_real = damage_angle_under
         end
         SetVariable("DamageDirection", damage_angle_real)
-        act(ApplyRideBlend, "DamageDirection", damage_angle_real)
-        act(ApplyDamageFlag, DAMAGE_FLAG_LARGE_BLOW)
+        act(SetMountHavokVariable, "DamageDirection", damage_angle_real)
+        act(SetMountDamageFlag, DAMAGE_FLAG_LARGE_BLOW)
         FireRideEvent("W_RideDamageExLarge", "W_Ride_DamageExLarge", FALSE)
         Replanning()
         return TRUE
     elseif damage_level == DAMAGE_LEVEL_LARGE or damage_level == DAMAGE_LEVEL_FLING or damage_level_under == DAMAGE_LEVEL_LARGE or damage_level_under == DAMAGE_LEVEL_FLING then
         if env(GetSpecialAttribute) == DAMAGE_ELEMENT_FIRE or env(GetMountSpecialAttribute) == DAMAGE_ELEMENT_FIRE then
             SetVariable("BlendRideDamageFire", 1)
-            act(ApplyRideBlend, "BlendRideDamageFire", 1)
-            act(ApplyRideBlend, "IndexFireRideDamageVariation", 0)
+            act(SetMountHavokVariable, "BlendRideDamageFire", 1)
+            act(SetMountHavokVariable, "IndexFireRideDamageVariation", 0)
             FireRideEvent("W_RideFireMiddleDamageBlend_Add", "W_Ride_FireMiddleDamageBlend_Add", FALSE)
         end
         SetVariable("DamageDirection", 2)
-        act(ApplyRideBlend, "DamageDirection", 2)
+        act(SetMountHavokVariable, "DamageDirection", 2)
         SetVariable("RideDamageDefaultState", 2)
-        act(ApplyRideBlend, "RideDamageDefaultState", 2)
-        act(ApplyDamageFlag, DAMAGE_FLAG_LARGE)
+        act(SetMountHavokVariable, "RideDamageDefaultState", 2)
+        act(SetMountDamageFlag, DAMAGE_FLAG_LARGE)
         FireRideEvent("W_RideDamageLarge", "W_Ride_DamageLarge", FALSE)
         Replanning()
         return TRUE
     elseif damage_level == DAMAGE_LEVEL_MIDDLE or damage_level == DAMAGE_LEVEL_PUSH or damage_level_under == DAMAGE_LEVEL_MIDDLE or damage_level_under == DAMAGE_LEVEL_PUSH then
         if env(GetSpecialAttribute) == DAMAGE_ELEMENT_FIRE or env(GetMountSpecialAttribute) == DAMAGE_ELEMENT_FIRE then
             SetVariable("BlendRideDamageFire", 1)
-            act(ApplyRideBlend, "BlendRideDamageFire", 1)
-            act(ApplyRideBlend, "IndexFireRideDamageVariation", 0)
+            act(SetMountHavokVariable, "BlendRideDamageFire", 1)
+            act(SetMountHavokVariable, "IndexFireRideDamageVariation", 0)
             FireRideEvent("W_RideFireMiddleDamageBlend_Add", "W_Ride_FireMiddleDamageBlend_Add", FALSE)
         end
         SetVariable("DamageDirection", 2)
-        act(ApplyRideBlend, "DamageDirection", 2)
+        act(SetMountHavokVariable, "DamageDirection", 2)
         SetVariable("RideDamageDefaultState", 1)
-        act(ApplyRideBlend, "RideDamageDefaultState", 1)
-        act(ApplyDamageFlag, DAMAGE_FLAG_MEDIUM)
+        act(SetMountHavokVariable, "RideDamageDefaultState", 1)
+        act(SetMountDamageFlag, DAMAGE_FLAG_MEDIUM)
         FireRideEvent("W_RideDamageMiddle", "W_Ride_DamageMiddle", FALSE)
         Replanning()
         return TRUE
     elseif damage_level == DAMAGE_LEVEL_SMALL or damage_level_under == DAMAGE_LEVEL_SMALL then
         if env(GetSpecialAttribute) == DAMAGE_ELEMENT_FIRE or env(GetMountSpecialAttribute) == DAMAGE_ELEMENT_FIRE then
             SetVariable("BlendRideDamageFire", 1)
-            act(ApplyRideBlend, "BlendRideDamageFire", 1)
-            act(ApplyRideBlend, "IndexFireRideDamageVariation", 0)
+            act(SetMountHavokVariable, "BlendRideDamageFire", 1)
+            act(SetMountHavokVariable, "IndexFireRideDamageVariation", 0)
             FireRideEvent("W_RideFireSmallDamageBlend_Add", "W_Ride_FireSmallDamageBlend_Add", FALSE)
         end
         SetVariable("DamageDirection", 2)
-        act(ApplyRideBlend, "DamageDirection", 2)
+        act(SetMountHavokVariable, "DamageDirection", 2)
         SetVariable("RideDamageDefaultState", 0)
-        act(ApplyRideBlend, "RideDamageDefaultState", 0)
-        act(ApplyDamageFlag, DAMAGE_FLAG_SMALL)
+        act(SetMountHavokVariable, "RideDamageDefaultState", 0)
+        act(SetMountDamageFlag, DAMAGE_FLAG_SMALL)
         FireRideEvent("W_RideDamageSmall", "W_Ride_DamageSmall", FALSE)
         Replanning()
         return TRUE
     elseif damage_level == DAMAGE_LEVEL_NONE or damage_level == DAMAGE_LEVEL_MINIMUM or damage_level_under == DAMAGE_LEVEL_NONE or damage_level_under == DAMAGE_LEVEL_MINIMUM then
         local index = 0
         SetVariable("IndexRide_SA_Add_Random", index)
-        act(ApplyRideBlend, "IndexRide_SA_Add_Random", index)
-        act(ApplyDamageFlag, DAMAGE_FLAG_MINIMUM)
+        act(SetMountHavokVariable, "IndexRide_SA_Add_Random", index)
+        act(SetMountDamageFlag, DAMAGE_FLAG_MINIMUM)
         FireRideEvent("W_Ride_SA_Add", "W_Ride_SA_Add", FALSE)
         SetVariable("Ride_SA_Add_Blend", 1)
-        act(ApplyRideBlend, "Ride_SA_Add_Blend", 1)
+        act(SetMountHavokVariable, "Ride_SA_Add_Blend", 1)
     end
     return FALSE
 end
@@ -22736,7 +22741,7 @@ function ExecRideItem()
         SetVariable("IndexItemUseAnim", item_type)
         ExecEventAllBody("W_RideItemOneShot")
     end
-    act(ApplyRideBlend, "Ride_Feed_AddBlend", 0)
+    act(SetMountHavokVariable, "Ride_Feed_AddBlend", 0)
     act(SetIsItemAnimationPlaying)
     act(SetNpcAIAttackRequestIDAfterBlend, env(GetNpcAIAttackRequestID))
     SetAIActionState()
@@ -22777,7 +22782,7 @@ function ExecRideGesture()
         return TRUE
     elseif upper_only == FALSE then
         SetVariable("IndexGesture", request)
-        act(ApplyRideBlend, "IndexGesture", request)
+        act(SetMountHavokVariable, "IndexGesture", request)
         FireRideEvent("W_RideGesture", "W_RideGesture")
     else
         SetVariable("IndexGesture", request)
@@ -23868,7 +23873,7 @@ function RideAdjustFromCalling_onUpdate()
 end
 
 function RideOn_onUpdate()
-    act(ApplyRideBlend, "AddBlend02", 0)
+    act(SetMountHavokVariable, "AddBlend02", 0)
     Ride_HeadDown_Rate = 0
     act(SetAllowedThrowDefenseType, 255)
     SetAIActionState()
@@ -24241,12 +24246,12 @@ end
 
 function Ride_SA_Add_Default_onUpdate()
     SetVariable("Ride_SA_Add_Blend", 0)
-    act(ApplyRideBlend, "BlendRidden_SA_Add", 0)
+    act(SetMountHavokVariable, "BlendRidden_SA_Add", 0)
 end
 
 function RideFireDamageBlend_Default_onUpdate()
     SetVariable("BlendRideDamageFire", 0)
-    act(ApplyRideBlend, "BlendRiddenDamageFire", 0)
+    act(SetMountHavokVariable, "BlendRiddenDamageFire", 0)
 end
 
 function RideDamage_Fall_onUpdate()
@@ -24313,7 +24318,7 @@ IsEnableFeedAddBlend = FALSE
 
 function RideCommonFunction(r1, r2, l1, l2)
     Ride_HeadDown_Rate = EaseInOutVal(g_TimeActEditor_07, Ride_HeadDown_Rate, 0.8, 1.5, "EaseInOutStartVal1", "EaseInOutTargetVal1", "EaseInOutTimer1")
-    act(ApplyRideBlend, "AddBlend02", Ride_HeadDown_Rate)
+    act(SetMountHavokVariable, "AddBlend02", Ride_HeadDown_Rate)
     if RideReActionFunction() == TRUE then
         return TRUE
     end
@@ -29557,6 +29562,18 @@ ROLLING_BUFFER = 10
 ROLLING_TRANCE = 11
 ROLLING_TRANCE_ENHANCE = 12
 
+-- Alternate enums for Hero names
+HERO_WYLDER = HERO_BALANCE
+HERO_GUARDIAN = HERO_TANK
+HERO_IRONEYE = HERO_SHOOTER
+HERO_DUCHESS = HERO_SPEED
+HERO_RAIDER  = HERO_POWER
+HERO_REVENANT = HERO_NECROMANCER
+HERO_RECLUSE = HERO_MAGIC
+HERO_EXECUTOR = HERO_TECHNICAL
+HERO_SCHOLAR = HERO_BUFFER
+HERO_UNDERTAKER = HERO_ATTACKER
+
 g_IsMimicry = 0
 g_EnableMimicry = 0
 IS_ATTACKED_JUMPMAGIC = FALSE
@@ -29620,7 +29637,7 @@ GetMovementType = 219
 IsLargeAtkComboPossible = 220
 IsMapActionPossible = 221
 GetReceivedDamageDirection = 222
-GetMapActionID = 223
+GetReceivedDamageDirectionAlt = 223 -- appears in c9997 hks, unsure of difference
 GetFallHeight = 224
 GetEquipWeaponCategory = 225 -- args: <hand index>
 IsHoldingBow = 226
@@ -29695,7 +29712,7 @@ DoesLadderHaveCharacters = 294 -- args: <check distance>, <unknown index>, <unkn
 IsLadderRightHandStayState = 295
 IsDescendingToFloor = 296
 IsInputDirectionMatch = 297
-IsSpecialTransition2Possible = 298
+IsVersusDragonDamage = 298
 IsVersusDivineDamage = 299
 
 IsGeneralAnimCancelPossible = 300
@@ -29757,6 +29774,7 @@ GetWeaponSwitchStatus = 359
 IsEquipmentMenuOpen = 360
 GetRemainingArrowCount = 361
 GetSpEffectType = 362 -- args: <enum> SP_EFFECT_TYPE_
+GetStateInfo = 362 -- args: <enum> SP_EFFECT_TYPE_
 IsPlayerInRangeOfMount = 363
 GetEventID = 364
 IsMultiplayer = 365
@@ -29776,15 +29794,19 @@ IsSummonInactive = 381 -- args: summon_id
 GetThrowFreedomType = 382
 GetMagicCocktailAffinityCount = 383
 GetBirdPathEscapeTime = 384
+HasMountBrokenSA = 385 -- speculation
 GetDemonBeastHP = 386
 GetDemonBeastUltimatePercent = 387
 GetMarkingDamageID = 388
 Unknown389 = 389 -- Game mode?
+Unknown390 = 390
 IsCheatDeathTriggered = 391
 GetCheatDeathAtkDirection = 392
 Unknown393 = 393 -- Sub Poise?
 GetBirdMovementDirectionTime = 394 -- args: <unknown>
 GetBirdActionID = 395
+GetMountMarkingDamageID = 396 -- speculation
+Unknown397 = 397
 GetElementalDamageCounter = 399
 
 GetPoise = 400
@@ -29795,7 +29817,8 @@ GetNpcAIAttackRequestIDAfterBlend = 405
 GetRollAngle = 406
 GetJumpAngle = 407
 GetSwordArtsRollAngle = 408
-GetDamageSpecialAttribute = 409 -- args: <index>
+GetDamageSpecialAttribute = 409 -- args: <status_effect>
+GetStatusEffectProc = 409 -- args: <status_effect>
 IsFookshotBreak = 411
 GetFookshotHitType = 412
 GetFookshotTargetDistance = 413
@@ -29831,7 +29854,7 @@ IsMountFallingDeadly = 541
 GetPhysicalAttributeMount = 542
 GetMountSpecialAttribute = 543
 GetSlope = 544
-IsMountDead = 545
+GetMountHP = 545
 GetMountIsWeakPoint = 546
 GetMountDamageAnimID = 547
 InNoRidingArea = 548
@@ -29863,6 +29886,7 @@ IsAIChangeToAwareState = 1009
 GetAITargetAwareStatePreviousFrame = 1010
 GetFlaskCount = 1011
 Unknown1012 = 1012
+Unknown1013 = 1013
 
 GetTestDamageAnimID = 1100
 IsInvincibleDebugMode = 1101
@@ -29974,7 +29998,7 @@ StartSlidingDownLadder = 137
 SetIsEventActionPossible = 138 -- args: <bool>
 RequestThrowAnimInterrupt = 139
 SetHandStateOfLadder = 140
-SetDamageAnimType = 141 -- args: <index> # ENUM: DAMAGE_FLAG
+SetKnockbackFlag = 141 -- args: <index> # ENUM: DAMAGE_FLAG
 DownwardSlideTurn = 142 -- args: <index>
 InterruptAttack = 143
 SkyDeathWarp = 144
@@ -30044,10 +30068,10 @@ SetElementalDamageCounter = 2091
 
 Mounting = 3000
 PlayRideAnim = 3003
-ApplyRideBlend = 3004 -- args: <blend anim>, <rate>
+SetMountHavokVariable = 3004 -- args: <blend anim>, <rate>
 Dismount = 3005
 AllowMounting = 3006
-ApplyDamageFlag = 3007 -- args: <index>
+SetMountDamageFlag = 3007 -- args: <index>
 
 RequestAIJumpInterupt = 4000
 NotifyAIOfJumpState = 4001
