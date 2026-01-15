@@ -70,6 +70,8 @@
 --				- Changed some env/act call names
 --				- Added alternate enums for hero names
 --				- Changed github link
+-- 2026-01-15 - El Fonz0:
+--				- Updated with changes from 1.03.4
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -6225,6 +6227,11 @@ function ExecDamage(is_parry, is_attackwhileguard)
         ExecEventAllBody("W_DamageParry")
         return TRUE
     end
+	local is_demonsword_justguard_break = FALSE
+    if damage_type == DAMAGE_TYPE_GUARDBREAK and IsDemonSwordMode() == TRUE and env(GetSpEffectID, 707000) == TRUE then
+        damage_type = DAMAGE_TYPE_GUARD
+        is_demonsword_justguard_break = TRUE
+    end
     if damage_type >= DAMAGE_TYPE_GUARDED and damage_type <= DAMAGE_TYPE_WALL_LEFT then
         DebugPrint(1, damage_type)
         Replanning()
@@ -6390,6 +6397,9 @@ function ExecDamage(is_parry, is_attackwhileguard)
         if env(GetSpEffectID, 171) == TRUE and guard_damage_level < 3 then
             guard_damage_level = 3
         end
+		if is_demonsword_justguard_break == TRUE then
+			guard_damage_level = 4
+		end
         if guard_damage_level > 0 then
             local guard_damage_direction = env(GetAtkDirection)
             if guard_damage_direction == 0 then
@@ -19223,13 +19233,29 @@ function ThrowDeath_onUpdate()
     if IsDirectDeath() == TRUE then
     elseif env(GetSpEffectID, 102115) == TRUE then
         SetVariable("IndexNearDeath", 11)
-        if ExecNearDeath() == TRUE then
+        if GetVariable("ThrowDeathState") == 0 then
+            SetVariable("IndexNearDeath", 11)
+            SetVariable("ThrowDeathState", 0)
+            ExecEventAllBody("W_NearDeathStart")
             return TRUE
-        end
+        elseif GetVariable("ThrowDeathState") == 1 then
+            SetVariable("IndexNearDeath", 11)
+            SetVariable("ThrowDeathState", 1)
+            ExecEventAllBody("W_NearDeathStart")
+			return TRUE
+		end
     elseif env(GetSpEffectID, 102116) == TRUE then
         SetVariable("IndexNearDeath", 11)
         SetVariable("ThrowDeathState", 1)
-        if ExecNearDeath() == TRUE then
+        if GetVariable("ThrowDeathState") == 0 then
+            SetVariable("IndexNearDeath", 11)
+            SetVariable("ThrowDeathState", 0)
+            ExecEventAllBody("W_NearDeathStart")
+            return TRUE
+        elseif GetVariable("ThrowDeathState") == 1 then
+            SetVariable("IndexNearDeath", 11)
+            SetVariable("ThrowDeathState", 1)
+            ExecEventAllBody("W_NearDeathStart")
             return TRUE
         end
     end
@@ -29573,6 +29599,29 @@ HERO_RECLUSE = HERO_MAGIC
 HERO_EXECUTOR = HERO_TECHNICAL
 HERO_SCHOLAR = HERO_BUFFER
 HERO_UNDERTAKER = HERO_ATTACKER
+
+-- Enums for more TravelMags
+ATTACK_RIGHT_CHAIN_FINISH = 99
+ATTACK_LEFT_LIGHTSTEP = 110
+ATTACK_LEFT_BACKSTEP = 120
+ATTACK_LEFT_DASH = 130
+ATTACK_LEFT_CHAIN_FINISH = 199
+ATTACK_BOTH_CHAIN_FINISH = 299
+ATTACK_DUAL_LIGHTSTEP = 310
+ATTACK_DUAL_BACKSTEP = 320
+ATTACK_DUAL_DASH = 330
+ATTACK_DUAL_CHAIN_FINISH = 399
+ATTACK_ARTS_ONESHOT = 400
+ATTACK_ARTS_COMBO1 = 410
+ATTACK_ARTS_COMBO2 = 420
+ATTACK_ARTS_ONESHOT_LONG = 450
+ATTACK_ARTS_COMBO1_LONG = 460
+ATTACK_ARTS_COMBO2_LONG = 470
+ATTACK_MAGIC_FIRE = 500
+ATTACK_MAGIC_LIGHTSTEP = 510
+ATTACK_MAGIC_BACKSTEP = 520
+ATTACK_MAGIC_DASH = 530
+ATTACK_MAGIC_FIRE_LONG = 550
 
 g_IsMimicry = 0
 g_EnableMimicry = 0
