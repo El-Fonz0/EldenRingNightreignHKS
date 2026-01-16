@@ -3,13 +3,15 @@
 -- Decompiled using the DSLuaDecompiler by ElaDiDu (fork from original by katalash)
 -- Curated at: https://github.com/El-Fonz0/EldenRingNightreignHKS
 ------------------------------------------
--- Version 11 (For ER:NR HKS last updated in 1.03.1)
+-- Version 2 (For ER:NR HKS last updated in 1.03.4)
 ------------------------------------------
 -- Changelog:
 -- 2026-01-13 - El Fonz0: Initial release
 --              - All env calls and act calls are replaced with their named counterparts
 --              - Cleaned up a bunch of f0_localX variables and functions that made it hard to read
 --				- Trimmed floats with trailing numbers (ex. 0.3000000012)
+-- 2026-01-15 - El Fonz0
+--				- Updated with changes from 1.03.4
 ------------------------------------------
 
 ------------------------------------------
@@ -24,6 +26,7 @@ FORCED_DEATH = 0
 FORCED_DEATH_DT_COMMON = 1
 FORCED_DEATH_DT_LEGEND = 1
 ELEMENTAL_DAMAGE_COUNTER = 0
+RIDE_ERROR_ELAPSED_TIME = 0
 FLAG_HOLY_DAMAGE = 0
 IS_INITIALIZED_SOUL_DROP_UP = FALSE
 IS_INITIALIZED_CONFUSION = FALSE
@@ -801,7 +804,8 @@ function ExecUltEnd()
 		  and IsNodeActive("Event20011_CMSG") == FALSE 
 		  and IsNodeActive("Event20012_CMSG") == FALSE 
 		  and env(GetSpEffectID, 705000) == FALSE 
-		  and env(GetSpEffectID, 705001) == FALSE then
+		  and env(GetSpEffectID, 705001) == FALSE
+		  and env(GetSpEffectID, 707140) == FALSE then
             if IsDirectDeath() == TRUE then
                 Fire("W_Event" .. 20012)
                 return TRUE
@@ -1766,7 +1770,14 @@ function IsDead()
     if hp <= 1 and env(GetSpEffectID, 12510) == FALSE and env(GetSpEffectID, SP_EFFECT_DOSOU_SKELETON_NO_DEAD) == TRUE then
         return TRUE
     end
-    if hp <= 1 and IsTDB() == TRUE and IsNodeActive("Event20011_CMSG") == FALSE and IsNodeActive("Event20012_CMSG") == FALSE and IsNodeActive("Event20000_CMSG") == FALSE and env(GetSpEffectID, 705000) == FALSE and env(GetSpEffectID, 705001) == FALSE then
+	-- Executor Ultimate
+    if hp <= 1 and IsTDB() == TRUE 
+	  and IsNodeActive("Event20011_CMSG") == FALSE 
+	  and IsNodeActive("Event20012_CMSG") == FALSE 
+	  and IsNodeActive("Event20000_CMSG") == FALSE 
+	  and env(GetSpEffectID, 705000) == FALSE 
+	  and env(GetSpEffectID, 705001) == FALSE
+	  and env(GetSpEffectID, 707140) == FALSE then
         return TRUE
     end
     if env(GetSpEffectID, 5730) == TRUE and env(GetSpEffectID, 5863) == TRUE then
@@ -11039,6 +11050,26 @@ function ExecRideDamage(is_weak)
             return TRUE
         end
     end
+	if (env(GetBehaviorID, BEH_IDENTIFIER_EXTRA_LARGE_DAMAGE) == TRUE or env(GetMountBehaviorID, BEH_IDENTIFIER_EXTRA_LARGE_DAMAGE) == TRUE) 
+	  and IsExistRideAnime(ANIME_ID_DAMAGE_SMALL_BLOW) == TRUE then
+        if damage_direction == DIRECTION_FORWARD or damage_direction_under == DIRECTION_FORWARD then
+            SetVariable("IndexRideEnemyDamageDirection", DIRECTION_FORWARD)
+            act(SetMountHavokVariable, "IndexRiddenEnemyDamageDirection", DIRECTION_FORWARD)
+        elseif damage_direction == DIRECTION_BACK or damage_direction_under == DIRECTION_BACK then
+            SetVariable("IndexRideEnemyDamageDirection", DIRECTION_BACK)
+            act(SetMountHavokVariable, "IndexRiddenEnemyDamageDirection", DIRECTION_BACK)
+        elseif damage_direction == DIRECTION_LEFT or damage_direction_under == DIRECTION_LEFT then
+            SetVariable("IndexRideEnemyDamageDirection", DIRECTION_LEFT)
+            act(SetMountHavokVariable, "IndexRiddenEnemyDamageDirection", DIRECTION_LEFT)
+        elseif damage_direction == DIRECTION_RIGHT or damage_direction_under == DIRECTION_RIGHT then
+            SetVariable("IndexRideEnemyDamageDirection", DIRECTION_RIGHT)
+            act(SetMountHavokVariable, "IndexRiddenEnemyDamageDirection", DIRECTION_RIGHT)
+        end
+        act(SetMountDamageFlag, DAMAGE_FLAG_LARGE_BLOW)
+        Replanning()
+        FireRideEvent("W_Ride_Enemy_DamageExLarge", "W_Ridden_Enemy_DamageExLarge", FALSE)
+        return TRUE
+    end
     if damage_level == DAMAGE_LEVEL_LARGE_BLOW or damage_level == DAMAGE_LEVEL_SMALL_BLOW 
 	  or damage_level == DAMAGE_LEVEL_UPPER or damage_level == DAMAGE_LEVEL_EX_BLAST or damage_level == DAMAGE_LEVEL_BREATH 
 	  or damage_level_under == DAMAGE_LEVEL_LARGE_BLOW or damage_level_under == DAMAGE_LEVEL_SMALL_BLOW 
@@ -11577,6 +11608,7 @@ end
 function Ride_Enemy_On_onUpdate()
     CallActionState(90000)
     if env(GetSpEffectID, 5410) == TRUE then
+		RIDE_ERROR_ELAPSED_TIME = 0
         if ExecPassiveRide(FALSE, FALSE) == TRUE then
             return TRUE
         end
@@ -11586,8 +11618,16 @@ function Ride_Enemy_On_onUpdate()
         if env(IsAnimEnd, 1) == TRUE then
             FireRideEvent("W_Ride_Enemy_Idles", "W_Ridden_Enemy_Idles", FALSE)
             return TRUE
-        else
         end
+	elseif env(GetSpEffectID, 13738) == TRUE and env(IsOnMount) == FALSE then
+		RIDE_ERROR_ELAPSED_TIME = RIDE_ERROR_ELAPSED_TIME + GetDeltaTime()
+		act(DebugLogOutput, RIDE_ERROR_ELAPSED_TIME)
+		if RIDE_ERROR_ELAPSED_TIME > 20 then
+			Fire("W_Idle")
+			return TRUE
+		end
+	else
+		RIDE_ERROR_ELAPSED_TIME = 0
     end
 end
 
@@ -14979,7 +15019,7 @@ PlayRideAnim = 3003
 SetMountHavokVariable = 3004 -- args: <blend anim>, <rate>
 Dismount = 3005
 AllowMounting = 3006
-ApplyDamageFlag = 3007 -- args: <index>
+SetMountDamageFlag = 3007 -- args: <index>
 
 RequestAIJumpInterupt = 4000
 NotifyAIOfJumpState = 4001
