@@ -3,7 +3,7 @@
 -- Decompiled using the DSLuaDecompiler by ElaDiDu (fork from original by katalash)
 -- Curated at: https://github.com/El-Fonz0/EldenRingNightreignHKS
 ------------------------------------------
--- Version 2 (For ER:NR HKS last updated in 1.03.4)
+-- Version 3 (For ER:NR HKS last updated in 1.03.4)
 ------------------------------------------
 -- Changelog:
 -- 2026-01-13 - El Fonz0: Initial release
@@ -12,6 +12,10 @@
 --				- Trimmed floats with trailing numbers (ex. 0.3000000012)
 -- 2026-01-15 - El Fonz0
 --				- Updated with changes from 1.03.4
+-- 2026-01-19 - El Fonz0
+--				- Added names for some missed act calls
+--				- Added comments to ExecDamage related to ElementalDamageCount
+--				- Fixed a vanilla issue where stunning certain enemies with ultimates/extra large attacks caused them to continue their attack combos
 ------------------------------------------
 
 ------------------------------------------
@@ -937,8 +941,8 @@ function ExecTurn(is_on_cancel)
         end
     end
     if turn_index >= 0 then
-        act(9105, correction_factor)
-        act(9104)
+        act(SetTurnAnimCorrectionRate, correction_factor)
+        act(SetIsTurnAnimInProgress)
         local event = "W_Turn"
         local ai_state = AI_STATE_BATTLE
         if turn_index == INDEX_TURN_BATTLE then
@@ -1396,7 +1400,7 @@ function ExecEvent(state)
 end
 
 function ResetRequest()
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function ExecEventAction(action_number)
@@ -2380,6 +2384,7 @@ function ExecSpDamage()
             Fire("W_DamageSpecial")
             return TRUE
         elseif IsExistAnime(8060) == TRUE then
+			Replanning()
             act(SetKnockbackFlag, DAMAGE_FLAG_LARGE)
             Fire("W_DamageExtraLarge")
             return TRUE
@@ -2416,6 +2421,7 @@ function ExecSpDamage()
                 Fire("W_DamageSpecial")
                 return TRUE
             else
+				Replanning()
                 act(SetKnockbackFlag, DAMAGE_FLAG_LARGE)
                 Fire("W_DamageExtraLarge")
                 return TRUE
@@ -2454,13 +2460,17 @@ function ExecSpDamage()
         Fire("W_Event20005")
         return TRUE
     end
-    if env(GetSpEffectID, 16247) == TRUE and env(GetSpEffectID, 16242) == FALSE and env(GetSpEffectID, 16249) == FALSE and env(GetSpEffectID, 16230) == FALSE and env(GetSpEffectID, 16179) == FALSE and IsSpDamageAllowed() == TRUE then
+    if env(GetSpEffectID, 16247) == TRUE and env(GetSpEffectID, 16242) == FALSE 
+	  and env(GetSpEffectID, 16249) == FALSE and env(GetSpEffectID, 16230) == FALSE 
+	  and env(GetSpEffectID, 16179) == FALSE and IsSpDamageAllowed() == TRUE then
         Replanning()
         act(SetKnockbackFlag, DAMAGE_FLAG_LARGE)
         Fire("W_Event20018")
         return TRUE
     end
-    if env(GetSpEffectID, 16248) == TRUE and env(GetBehaviorID, BEH_IDENTIFIER_TRAUMA_MORGOTT) == TRUE and env(GetSpEffectID, 6090) == FALSE and env(GetSpEffectID, 6091) == FALSE and env(GetSpEffectID, 6092) == FALSE and env(GetSpEffectID, 6096) == FALSE and env(GetSpEffectID, 6097) == TRUE and IsSpDamageAllowed() == TRUE then
+    if env(GetSpEffectID, 16248) == TRUE and env(GetBehaviorID, BEH_IDENTIFIER_TRAUMA_MORGOTT) == TRUE 
+	  and env(GetSpEffectID, 6090) == FALSE and env(GetSpEffectID, 6091) == FALSE and env(GetSpEffectID, 6092) == FALSE 
+	  and env(GetSpEffectID, 6096) == FALSE and env(GetSpEffectID, 6097) == TRUE and IsSpDamageAllowed() == TRUE then
         if env(GetSpEffectID, 6095) == TRUE then
             act(AddSpEffect, 6096)
             act(AddSpEffect, 6091)
@@ -2502,7 +2512,9 @@ function ExecSpDamage()
             return TRUE
         end
     end
-    if (env(GetSpEffectID, 17102) == TRUE or env(GetSpEffectID, 17103) == TRUE or env(GetSpEffectID, 17117) == TRUE or env(GetSpEffectID, 17118) == TRUE) and IsSpDamageAllowed() == TRUE then
+    if (env(GetSpEffectID, 17102) == TRUE or env(GetSpEffectID, 17103) == TRUE 
+	  or env(GetSpEffectID, 17117) == TRUE or env(GetSpEffectID, 17118) == TRUE) 
+	  and IsSpDamageAllowed() == TRUE then
         if env(GetPartGroup) == 1 or env(GetPartGroup) == 2 then
             Replanning()
             act(SetKnockbackFlag, DAMAGE_FLAG_LARGE)
@@ -5317,6 +5329,7 @@ function ExecDamage(is_weak, ignore_guard_block)
         return FALSE
     end
     if env(GetSpecialAttribute) == DAMAGE_ELEMENT_HOLY then
+		-- Heolstor the Nightlord - Holy buildup
         if env(GetSpEffectID, 46100) == TRUE and env(GetSpEffectID, 96210) == FALSE and env(GetSpEffectID, 96211) == FALSE then
             ExecElementalDamageCount()
             local resist_elemental = 250
@@ -5356,6 +5369,7 @@ function ExecDamage(is_weak, ignore_guard_block)
                     return TRUE
                 end
             end
+		-- Gladius - Holy buildup
         elseif env(GetSpEffectID, 42049) == TRUE and env(GetSpEffectID, 96200) == FALSE and env(GetSpEffectID, 96201) == FALSE then
             ExecElementalDamageCount()
             local resist_elemental = 350
@@ -5418,6 +5432,7 @@ function ExecDamage(is_weak, ignore_guard_block)
         end
     end
     if env(GetSpecialAttribute) == DAMAGE_ELEMENT_FIRE then
+		-- Caligo - Fire buildup
         if env(GetSpEffectID, 47030) == TRUE and env(GetSpEffectID, 96010) == FALSE and env(GetSpEffectID, 96011) == FALSE then
             ExecElementalDamageCount()
             local resist_elemental = 250
@@ -5457,6 +5472,7 @@ function ExecDamage(is_weak, ignore_guard_block)
             act(AddSpEffect, 62021)
         end
     end
+	-- Maris and Fulghor - Lightning stun during special attack
     if env(GetSpecialAttribute) == DAMAGE_ELEMENT_LIGHTNING and env(GetSpEffectID, 45630) == TRUE then
         ExecElementalDamageCount()
         local resist_elemental = 70
@@ -5505,6 +5521,7 @@ function ExecDamage(is_weak, ignore_guard_block)
             end
         end
     end
+	-- Dreglord Straghess - Stagger from enough attacks
     if env(GetSpEffectID, 60525) == TRUE and env(GetSpEffectID, 60527) == FALSE and env(IsDamageMotionOff) == FALSE then
         ExecElementalDamageCount()
         local resist_elemental = 250
@@ -5523,6 +5540,7 @@ function ExecDamage(is_weak, ignore_guard_block)
             return TRUE
         end
     end
+	-- Everdark Balancers/Harmonia - Stagger from enough attacks
     if env(GetSpEffectID, 62841) == TRUE and env(GetSpEffectID, 62885) == FALSE and env(IsDamageMotionOff) == FALSE then
         ExecElementalDamageCount()
         local resist_elemental = 110
@@ -5648,6 +5666,7 @@ function ExecDamage(is_weak, ignore_guard_block)
             end
         end
     end
+	-- Everdark Gladius - Gain increased attack power during taunt move
     if env(GetSpEffectID, 51300) == TRUE then
         if env(GetSpEffectID, 51312) == TRUE then
             act(AddSpEffect, 51312)
@@ -6151,31 +6170,46 @@ function ExecPassiveTransition(judge_fall_type, is_weak, ignore_guard_block, ena
     local dT = GetDeltaTime()
     FORCED_DEATH_DT_COMMON = FORCED_DEATH_DT_COMMON + dT
     FORCED_DEATH_DT_LEGEND = FORCED_DEATH_DT_LEGEND + dT
-    if (env(GetSpEffectID, 8600301) == TRUE and env(HasReceivedAnyDamage) == TRUE or env(GetSpEffectID, 8600308) == TRUE) and FORCED_DEATH_DT_COMMON > 0.5 then
+	-- Sudden Enemy Death - Dormant Power
+    if (env(GetSpEffectID, 8600301) == TRUE and env(HasReceivedAnyDamage) == TRUE 
+	  or env(GetSpEffectID, 8600308) == TRUE) and FORCED_DEATH_DT_COMMON > 0.5 then
         rand = math.random(1, 100)
         FORCED_DEATH_DT_COMMON = 0
         if env(GetSpEffectID, 8600303) == TRUE then
-            if hprate <= 100 and rand <= 5 or hprate <= 75 and rand <= 7 or hprate <= 50 and rand <= 9 or hprate <= 25 and rand <= 15 then
+            if hprate <= 100 and rand <= 5 
+			  or hprate <= 75 and rand <= 7 
+			  or hprate <= 50 and rand <= 9 
+			  or hprate <= 25 and rand <= 15 then
                 FORCED_DEATH = 1
                 if ExecDeath() == TRUE then
                     return TRUE
                 end
             end
         elseif env(GetSpEffectID, 8600304) == TRUE then
-            if hprate <= 100 and rand <= 3 or hprate <= 75 and rand <= 5 or hprate <= 50 and rand <= 7 or hprate <= 25 and rand <= 13 then
+            if hprate <= 100 and rand <= 3 
+			  or hprate <= 75 and rand <= 5 
+			  or hprate <= 50 and rand <= 7 
+			  or hprate <= 25 and rand <= 13 then
                 FORCED_DEATH = 1
                 if ExecDeath() == TRUE then
                     return TRUE
                 end
             end
         elseif env(GetSpEffectID, 8600305) == TRUE then
-            if hprate <= 100 and rand <= 0 or hprate <= 75 and rand <= 2 or hprate <= 50 and rand <= 4 or hprate <= 25 and rand <= 6 then
+            if hprate <= 100 and rand <= 0 
+			  or hprate <= 75 and rand <= 2 
+			  or hprate <= 50 and rand <= 4 
+			  or hprate <= 25 and rand <= 6 then
                 FORCED_DEATH = 1
                 if ExecDeath() == TRUE then
                     return TRUE
                 end
             end
-        elseif env(GetSpEffectID, 8600306) == TRUE and (hprate <= 100 and rand <= 0 or hprate <= 75 and rand <= 0 or hprate <= 50 and rand <= 1 or hprate <= 25 and rand <= 2) then
+        elseif env(GetSpEffectID, 8600306) == TRUE 
+		  and (hprate <= 100 and rand <= 0 
+		  or hprate <= 75 and rand <= 0 
+		  or hprate <= 50 and rand <= 1 
+		  or hprate <= 25 and rand <= 2) then
             FORCED_DEATH = 1
             if ExecDeath() == TRUE then
                 return TRUE
@@ -6186,31 +6220,45 @@ function ExecPassiveTransition(judge_fall_type, is_weak, ignore_guard_block, ena
     local maxhp = env(GetMaxHP)
     local hprate = hp / maxhp * 100
     local rand = math.random(1, 100)
+	-- Sudden Enemy Death - Eclipse Shotel Power
     if env(GetSpEffectID, 8981001) == TRUE and FORCED_DEATH_DT_LEGEND > 0.5 then
         rand = math.random(1, 100)
         FORCED_DEATH_DT_LEGEND = 0
         if env(GetSpEffectID, 8600303) == TRUE then
-            if hprate <= 100 and rand <= 20 or hprate <= 75 and rand <= 22 or hprate <= 50 and rand <= 24 or hprate <= 25 and rand <= 30 then
+            if hprate <= 100 and rand <= 20 
+			  or hprate <= 75 and rand <= 22 
+			  or hprate <= 50 and rand <= 24 
+			  or hprate <= 25 and rand <= 30 then
                 FORCED_DEATH = 1
                 if ExecDeath() == TRUE then
                     return TRUE
                 end
             end
         elseif env(GetSpEffectID, 8600304) == TRUE then
-            if hprate <= 100 and rand <= 18 or hprate <= 75 and rand <= 20 or hprate <= 50 and rand <= 22 or hprate <= 25 and rand <= 28 then
+            if hprate <= 100 and rand <= 18 
+			  or hprate <= 75 and rand <= 20 
+			  or hprate <= 50 and rand <= 22 
+			  or hprate <= 25 and rand <= 28 then
                 FORCED_DEATH = 1
                 if ExecDeath() == TRUE then
                     return TRUE
                 end
             end
         elseif env(GetSpEffectID, 8600305) == TRUE then
-            if hprate <= 100 and rand <= 0 or hprate <= 75 and rand <= 17 or hprate <= 50 and rand <= 19 or hprate <= 25 and rand <= 21 then
+            if hprate <= 100 and rand <= 0 
+			  or hprate <= 75 and rand <= 17 
+			  or hprate <= 50 and rand <= 19 
+			  or hprate <= 25 and rand <= 21 then
                 FORCED_DEATH = 1
                 if ExecDeath() == TRUE then
                     return TRUE
                 end
             end
-        elseif env(GetSpEffectID, 8600306) == TRUE and (hprate <= 100 and rand <= 0 or hprate <= 75 and rand <= 0 or hprate <= 50 and rand <= 16 or hprate <= 25 and rand <= 17) then
+        elseif env(GetSpEffectID, 8600306) == TRUE 
+		  and (hprate <= 100 and rand <= 0 
+		  or hprate <= 75 and rand <= 0 
+		  or hprate <= 50 and rand <= 16 
+		  or hprate <= 25 and rand <= 17) then
             FORCED_DEATH = 1
             if ExecDeath() == TRUE then
                 return TRUE
@@ -6570,7 +6618,7 @@ end
 
 function TurnCommonFunction(style)
     act(NotifyAIOfBehaviourState, 0, style)
-    act(9104)
+    act(SetIsTurnAnimInProgress)
     act(AllowBuddyWarp)
     if env(GetSpEffectID, 5981) == FALSE then
         act(FallPreventionAssist)
@@ -6723,7 +6771,7 @@ function DamageCommonFunction(style, is_weak, judge_fall_type)
 end
 
 function IdleUniqueCommonFunction(id)
-    act(9102)
+    act(SetIsEventAnim)
     if ExecPassiveTransition(JUDGE_FALL_TYPE_DEFAULT, FALSE, FALSE, FALSE) == TRUE then
         return TRUE
     end
@@ -6775,7 +6823,7 @@ function FallCommonFunction(fall_type)
 end
 
 function EventCommonFunction(action_number)
-    act(9102)
+    act(SetIsEventAnim)
     if action_number ~= nil then
         CallActionState(action_number)
     end
@@ -8045,7 +8093,7 @@ end
 
 function Attack3000_onActivate()
     CallActionState(3000)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3000_onUpdate()
@@ -8066,7 +8114,7 @@ end
 
 function Attack3001_onActivate()
     CallActionState(3001)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3001_onUpdate()
@@ -8087,7 +8135,7 @@ end
 
 function Attack3002_onActivate()
     CallActionState(3002)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3002_onUpdate()
@@ -8108,7 +8156,7 @@ end
 
 function Attack3003_onActivate()
     CallActionState(3003)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3003_onUpdate()
@@ -8139,7 +8187,7 @@ end
 
 function Attack3005_onActivate()
     CallActionState(3005)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3005_onUpdate()
@@ -8170,7 +8218,7 @@ end
 
 function Attack3007_onActivate()
     CallActionState(3007)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3007_onUpdate()
@@ -8205,7 +8253,7 @@ end
 
 function Attack3010_onActivate()
     CallActionState(3010)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3010_onUpdate()
@@ -8267,7 +8315,7 @@ end
 
 function Attack3015_onActivate()
     CallActionState(3015)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3015_onUpdate()
@@ -8293,7 +8341,7 @@ end
 
 function Attack3016_onActivate()
     CallActionState(3016)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3016_onUpdate()
@@ -8323,7 +8371,7 @@ end
 
 function Attack3017_onActivate()
     CallActionState(3017)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3017_onUpdate()
@@ -8462,7 +8510,7 @@ end
 
 function Attack3030_onActivate()
     CallActionState(3030)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Attack3030_onUpdate()
@@ -9578,7 +9626,7 @@ function LandDownward_onUpdate()
 end
 
 function Land_TDB_N_onActivate()
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Land_TDB_N_onUpdate()
@@ -9588,7 +9636,7 @@ function Land_TDB_N_onUpdate()
 end
 
 function Land_TDB_F_onActivate()
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Land_TDB_F_onUpdate()
@@ -9598,7 +9646,7 @@ function Land_TDB_F_onUpdate()
 end
 
 function Land_TDB_R_onActivate()
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Land_TDB_R_onUpdate()
@@ -9608,7 +9656,7 @@ function Land_TDB_R_onUpdate()
 end
 
 function Land_TDB_toF_onActivate()
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Land_TDB_toF_onUpdate()
@@ -9618,7 +9666,7 @@ function Land_TDB_toF_onUpdate()
 end
 
 function Land_TDB_toR_onActivate()
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Land_TDB_toR_onUpdate()
@@ -10564,7 +10612,7 @@ end
 
 function Jump_TDB_N_onActivate()
     act(AIJumpState)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Jump_TDB_N_onUpdate()
@@ -10576,7 +10624,7 @@ end
 
 function Jump_TDB_F_onActivate()
     act(AIJumpState)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Jump_TDB_F_onUpdate()
@@ -10588,7 +10636,7 @@ end
 
 function Jump_TDB_R_onActivate()
     act(AIJumpState)
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function Jump_TDB_R_onUpdate()
@@ -10599,7 +10647,7 @@ function Jump_TDB_R_onUpdate()
 end
 
 function WallJumpStart_TDB_onActivate()
-    act(9101)
+    act(ResetInputQueue)
     act(AIJumpState)
     SetAIActionState()
     local stickAngle = hkbGetVariable("TurnAngle")
@@ -11361,8 +11409,8 @@ function ExecRideTurn(is_on_cancel)
         end
     end
     if turn_index >= 0 then
-        act(9105, correction_factor)
-        act(9104)
+        act(SetTurnAnimCorrectionRate, correction_factor)
+        act(SetIsTurnAnimInProgress)
         local event_top = "W_Ride_Enemy_Turn"
         local event_under = "W_Ridden_Enemy_Turn"
         local ai_state = AI_STATE_BATTLE
@@ -12515,7 +12563,7 @@ function Ride_Enemy_Attack3039_onUpdate()
 end
 
 function Ride_Enemy_TurnDefault_Left180_onUpdate()
-    act(9104)
+    act(SetIsTurnAnimInProgress)
     if env(GetSpEffectID, 5981) == FALSE then
         act(FallPreventionAssist)
     end
@@ -12532,7 +12580,7 @@ function Ride_Enemy_TurnDefault_Left180_onUpdate()
 end
 
 function Ride_Enemy_TurnDefault_Right180_onUpdate()
-    act(9104)
+    act(SetIsTurnAnimInProgress)
     if env(GetSpEffectID, 5981) == FALSE then
         act(FallPreventionAssist)
     end
@@ -12549,7 +12597,7 @@ function Ride_Enemy_TurnDefault_Right180_onUpdate()
 end
 
 function Ride_Enemy_TurnDefault_Left90_onUpdate()
-    act(9104)
+    act(SetIsTurnAnimInProgress)
     if env(GetSpEffectID, 5981) == FALSE then
         act(FallPreventionAssist)
     end
@@ -12566,7 +12614,7 @@ function Ride_Enemy_TurnDefault_Left90_onUpdate()
 end
 
 function Ride_Enemy_TurnDefault_Right90_onUpdate()
-    act(9104)
+    act(SetIsTurnAnimInProgress)
     if env(GetSpEffectID, 5981) == FALSE then
         act(FallPreventionAssist)
     end
@@ -12583,7 +12631,7 @@ function Ride_Enemy_TurnDefault_Right90_onUpdate()
 end
 
 function Ride_Enemy_TurnBattle_Left180_onUpdate()
-    act(9104)
+    act(SetIsTurnAnimInProgress)
     if env(GetSpEffectID, 5981) == FALSE then
         act(FallPreventionAssist)
     end
@@ -12600,7 +12648,7 @@ function Ride_Enemy_TurnBattle_Left180_onUpdate()
 end
 
 function Ride_Enemy_TurnBattle_Right180_onUpdate()
-    act(9104)
+    act(SetIsTurnAnimInProgress)
     if env(GetSpEffectID, 5981) == FALSE then
         act(FallPreventionAssist)
     end
@@ -12617,7 +12665,7 @@ function Ride_Enemy_TurnBattle_Right180_onUpdate()
 end
 
 function Ride_Enemy_TurnBattle_Left90_onUpdate()
-    act(9104)
+    act(SetIsTurnAnimInProgress)
     if env(GetSpEffectID, 5981) == FALSE then
         act(FallPreventionAssist)
     end
@@ -12634,7 +12682,7 @@ function Ride_Enemy_TurnBattle_Left90_onUpdate()
 end
 
 function Ride_Enemy_TurnBattle_Right90_onUpdate()
-    act(9104)
+    act(SetIsTurnAnimInProgress)
     if env(GetSpEffectID, 5981) == FALSE then
         act(FallPreventionAssist)
     end
@@ -13723,7 +13771,7 @@ function RideGallop_End_onUpdate()
 end
 
 function RideTurn_Left180_onActivate()
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function RideTurn_Left180_onUpdate()
@@ -13754,7 +13802,7 @@ function RideTurnDefault_Left180_onUpdate()
 end
 
 function RideTurn_Right180_onActivate()
-    act(9101)
+    act(ResetInputQueue)
 end
 
 function RideTurn_Right180_onUpdate()
@@ -14506,7 +14554,7 @@ end
 
 function Update()
     g_FrameCount = g_FrameCount + 1
-    act(9999)
+    act(Unknown9999)
     if env(GetSpEffectID, 5980) == TRUE then
         act(FallPreventionAssist)
     end
@@ -14737,6 +14785,7 @@ GetUltimateChargePercent = 375
 GetSummonHealthPercent = 376 -- args: summon_id
 GetBirdEventID = 377
 HasDodgedThrowAttack = 378
+GetThrowCounterID = 379
 IsSummonActive = 380 -- args: summon_id
 IsSummonInactive = 381 -- args: summon_id
 GetThrowFreedomType = 382

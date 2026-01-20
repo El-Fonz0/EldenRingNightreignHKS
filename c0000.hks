@@ -3,7 +3,7 @@
 -- Decompiled using the DSLuaDecompiler by ElaDiDu (fork from original by katalash)
 -- Curated at: https://github.com/El-Fonz0/EldenRingNightreignHKS
 ------------------------------------------
--- Version 11 (For ER:NR HKS last updated in 1.03.1)
+-- Version 16 (For ER:NR HKS last updated in 1.03.4)
 ------------------------------------------
 -- Changelog:
 -- 2025-06-07 - Exelot: Initial Release
@@ -72,6 +72,12 @@
 --				- Changed github link
 -- 2026-01-15 - El Fonz0:
 --				- Updated with changes from 1.03.4
+-- 2026-01-20 - El Fonz0:
+--				- Fixed vanilla issue where having Wylder's skill followup from the relic effect prevented dual wield dash attacks
+--				- Fixed vanilla issue where Duchess did not continue dual wield chain after dodging
+--				- Fixed vanilla issue where guarded backsteps did not allow actions while still guarding
+--				- Fixed vanilla issue where dual wield dash and dodge attacks didn't have travel magnification
+--				- Trimmed a couple remaining trailing floats
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -2523,11 +2529,11 @@ function ExecAttack(r1, r2, l1, l2, b1, b2, is_guard, blend_type, artsr1, artsr2
         end
         ExecEventAllBody(b2)
     elseif request == ATTACK_REQUEST_DUAL_RIGHT then
-        if r1 == "W_AttackRightLightDash" then
+        if (r1 == "W_AttackRightLightDash" or r1 == "W_FookShotAdditionalAttack") and l1 == "W_AttackLeftLight1" then
             l1 = "W_AttackDualDash"
-        elseif r1 == "W_AttackRightLightStep" then
+        elseif r1 == "W_AttackRightLightStep" and l1 == "W_AttackLeftLight1" then
             l1 = "W_AttackDualRolling"
-        elseif r1 == "W_AttackRightBackstep" then
+        elseif r1 == "W_AttackRightBackstep" and l1 == "W_AttackLeftLight1" then
             l1 = "W_AttackDualBackStep"
         elseif l1 == "W_AttackLeftLight1" then
             l1 = "W_AttackDualLight1"
@@ -3622,7 +3628,8 @@ function ExecTravelMagnification(attack_type)
 	-- Vanilla fix - not every check was attack_type == X,
 	-- resulting in everything passing this check and using the lesser correction_factor_rate
     if attack_type == ATTACK_RIGHT_DASH or attack_type == ATTACK_RIGHT_HEAVYDASH 
-	  or attack_type == ATTACK_BOTH_DASH or attack_type == ATTACK_BOTH_HEAVYDASH then
+	  or attack_type == ATTACK_BOTH_DASH or attack_type == ATTACK_BOTH_HEAVYDASH
+	  or attack_type == ATTACK_DUAL_DASH then
         correction_factor_rate = 1.25
     end
     local travel_magnification = stick_level * correction_factor_rate
@@ -10044,6 +10051,8 @@ function BackStepGuardOn_UpperLayer_onUpdate()
     act(SetCanChangeEquipmentOff)
     if ExecGuardOnCancelTiming(TO_GUARDON, ALLBODY) == TRUE then
         return
+	elseif EvasionCommonFunction(FALL_TYPE_DEFAULT, "W_AttackRightBackstep", "W_AttackRightHeavy1Start", "W_AttackLeftLight1", "W_AttackLeftHeavy1", "W_AttackBothBackstep", "W_AttackBothHeavy1Start", QUICKTYPE_BACKSTEP) == TRUE then
+        return
     end
     if IsGuard() == FALSE then
         SetVariable("EnableTAE_BackStep", true)
@@ -11485,6 +11494,7 @@ end
 
 function AttackDualDash_onUpdate()
     SPEED_COMBO_NUMBER_DUAL = 1
+    ExecTravelMagnification(ATTACK_DUAL_DASH)
     local l1 = "W_AttackDualLightSubStart"
     if g_ComboReset == TRUE then
         l1 = "W_AttackLeftLight1"
@@ -11500,6 +11510,7 @@ end
 
 function AttackDualRolling_onUpdate()
     SPEED_COMBO_NUMBER_DUAL = 1
+    ExecTravelMagnification(ATTACK_DUAL_LIGHTSTEP)
     local l1 = "W_AttackDualLightSubStart"
     if g_ComboReset == TRUE then
         l1 = "W_AttackLeftLight1"
@@ -11515,6 +11526,7 @@ end
 
 function AttackDualBackStep_onUpdate()
     SPEED_COMBO_NUMBER_DUAL = 1
+    ExecTravelMagnification(ATTACK_DUAL_BACKSTEP)
     local l1 = "W_AttackDualLightSubStart"
     if g_ComboReset == TRUE then
         l1 = "W_AttackLeftLight1"
@@ -17171,10 +17183,10 @@ function BirdAct_FallLoop_onUpdate()
     local bird_control = GetVariable("BirdDepartureFall_Control_Down")
     if GetVariable("MoveSpeedIndex") >= 1 and angle < 30 then
         if bird_control < 1 then
-            SetVariable("BirdDepartureFall_Control_Down", bird_control + 0.004999999888241291)
+            SetVariable("BirdDepartureFall_Control_Down", bird_control + 0.005)
         end
     elseif bird_control > 0 then
-        SetVariable("BirdDepartureFall_Control_Down", bird_control - 0.00800000037997961)
+        SetVariable("BirdDepartureFall_Control_Down", bird_control - 0.008)
     end
     if env(GetSpEffectID, 99230) == TRUE then
         ExecEventAllBody("W_BirdAct_Rise")
@@ -22075,7 +22087,7 @@ function CalculateFootTarget2_OffsetModelSpace(source, YaxisOffset, dest, offset
 end
 
 function Master_Layer_onGenerate()
-    local offset = 0.8659999966621399
+    local offset = 0.866
     local heroId = env(GetHeroID)
     if heroId > 0 and heroId <= #heroFootOffsetTables then
         local offsetRateL = GetVariable("PoseAnime_Addtive_LeftLeg")
@@ -29838,6 +29850,7 @@ GetUltimateChargePercent = 375
 GetSummonHealthPercent = 376 -- args: summon_id
 GetBirdEventID = 377
 HasDodgedThrowAttack = 378
+GetThrowCounterID = 379
 IsSummonActive = 380 -- args: summon_id
 IsSummonInactive = 381 -- args: summon_id
 GetThrowFreedomType = 382
