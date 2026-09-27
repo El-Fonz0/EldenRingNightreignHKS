@@ -78,6 +78,9 @@
 --				- Fixed vanilla issue where guarded backsteps did not allow actions while still guarding
 --				- Fixed vanilla issue where dual wield dash and dodge attacks didn't have travel magnification
 --				- Trimmed a couple remaining trailing floats
+-- 2026-09-27 - El Fonz0:
+--				- Fixed issue where dashing would prevent spell-casting
+--				- Updated env names
 ------------------------------------------
 -- Known issues:
 -- N/A
@@ -1474,7 +1477,7 @@ function IsDirectDeath()
 		return TRUE
 	end
 	-- Check if player is solo and some value being 0/2/3
-    if env(IsMultiplayer) == FALSE and (env(Unknown389) == 0 or env(Unknown389) == 2 or env(Unknown389) == 3) then
+    if env(IsMultiplayer) == FALSE and (env(GetGameMode) == 0 or env(GetGameMode) == 2 or env(GetGameMode) == 3) then
 		-- Check if player is vs a Night boss/Nightlord
         if env(GetSpEffectID, 102120) == TRUE then
 			-- Check if player doesn't have auto revival from a Wending Grace, Favor of Noklateo, or Solo Revival
@@ -1742,7 +1745,7 @@ end
 function ExecAttackerUltCounterReset()
     if env(GetHeroID) ~= HERO_ATTACKER then
         return FALSE
-    elseif env(Unknown389) ~= 0 then
+    elseif env(GetGameMode) ~= 0 then
         return FALSE
     else
         ATTACKER_ULT_COUNTER = 0
@@ -3209,7 +3212,7 @@ function ExecAirUlt()
         ResetRequest()
         return FALSE
     end
-	if env(Unknown389) == 0 and ATTACKER_ULT_COUNTER >= 2 then
+	if env(GetGameMode) == 0 and ATTACKER_ULT_COUNTER >= 2 then
 		ResetRequest()
 		return FALSE
 	end
@@ -3289,7 +3292,7 @@ function ExecSummon()
 
 	-- Summon Helen
     if env(ActionRequest, ACTION_ARM_R1) == TRUE then
-        if env(IsSummonInactive, SUMMON_HELEN) == TRUE then
+        if env(IsSummonAlive, SUMMON_HELEN) == TRUE then
             if env(IsSummonActive, SUMMON_HELEN) == TRUE then
                 SetVariable("IsEnableSummonAct", 0)
             elseif env(GetSummonHealthPercent, SUMMON_HELEN) > 0 then
@@ -3306,7 +3309,7 @@ function ExecSummon()
 
 	-- Summon Frederick
     if env(ActionRequest, ACTION_ARM_R2) == TRUE then
-        if env(IsSummonInactive, SUMMON_FREDERICK) == TRUE then
+        if env(IsSummonAlive, SUMMON_FREDERICK) == TRUE then
             if env(IsSummonActive, SUMMON_FREDERICK) == TRUE then
                 SetVariable("IsEnableSummonAct", 0)
             elseif env(GetSummonHealthPercent, SUMMON_FREDERICK) > 0 then
@@ -3323,7 +3326,7 @@ function ExecSummon()
 
 	-- Summon Sebastian
     if env(ActionRequest, ACTION_ARM_L1) == TRUE then
-        if env(IsSummonInactive, SUMMON_SEBASTIAN) == TRUE then
+        if env(IsSummonAlive, SUMMON_SEBASTIAN) == TRUE then
             if env(IsSummonActive, SUMMON_SEBASTIAN) == TRUE then
                 SetVariable("IsEnableSummonAct", 0)
             elseif env(GetSummonHealthPercent, SUMMON_SEBASTIAN) > 0 then
@@ -6072,7 +6075,7 @@ function ExecDamage(is_parry, is_attackwhileguard)
     if env(IsDamageMotionOff) == TRUE then
         return FALSE
     end
-	if env(Unknown426) == TRUE then
+	if env(IsDamageNullifyTriggered) == TRUE then
 		return FALSE
 	end
 	if env(GetSpEffectID, 708050) == TRUE and is_damaged == TRUE then
@@ -8751,7 +8754,7 @@ function MoveCommonFunction(blend_type)
             if ExecMagic(QUICKTYPE_DASH, blend_type, FALSE) == TRUE then
                 return TRUE
             end
-        elseif speed == 2 and env(ESD_ENV_DS3ActionDuration, ACTION_ARM_SP_MOVE) > 0 then
+        elseif speed == 2 and env(ActionDuration, ACTION_ARM_SP_MOVE) > 0 then
             if ExecMagic(QUICKTYPE_DASH, blend_type, FALSE) == TRUE then
                 return TRUE
             end
@@ -29852,7 +29855,7 @@ GetBirdEventID = 377
 HasDodgedThrowAttack = 378
 GetThrowCounterID = 379
 IsSummonActive = 380 -- args: summon_id
-IsSummonInactive = 381 -- args: summon_id
+IsSummonAlive = 381 -- args: summon_id
 GetThrowFreedomType = 382
 GetMagicCocktailAffinityCount = 383
 GetBirdPathEscapeTime = 384
@@ -29860,15 +29863,16 @@ HasMountBrokenSA = 385 -- speculation
 GetDemonBeastHP = 386
 GetDemonBeastUltimatePercent = 387
 GetMarkingDamageID = 388
-Unknown389 = 389 -- Game mode?
-Unknown390 = 390
+GetGameMode = 389
+HasDeflectBrokenSA = 390
 IsCheatDeathTriggered = 391
 GetCheatDeathAtkDirection = 392
-Unknown393 = 393 -- Sub Poise?
+HasBrokenSubSA = 393
 GetBirdMovementDirectionTime = 394 -- args: <unknown>
 GetBirdActionID = 395
 GetMountMarkingDamageID = 396 -- speculation
-Unknown397 = 397
+IsRestageDamaged = 397
+GetTrueDamageLevel = 398 -- like GetDamageLevel but ignores damage level change effects
 GetElementalDamageCounter = 399
 
 GetPoise = 400
@@ -29890,7 +29894,7 @@ GetEnhancedTranceAtkDirection = 422
 GetBlinkStakeUnknown = 423
 GetBlinkStakeDistance = 424
 IsBlinkStakeCollide = 425
-Unknown426 = 426
+IsDamageNullifyTriggered = 426
 
 IsOnMount = 500
 IsMount = 502
@@ -29947,8 +29951,8 @@ GetAITargetAwareState = 1008
 IsAIChangeToAwareState = 1009
 GetAITargetAwareStatePreviousFrame = 1010
 GetFlaskCount = 1011
-Unknown1012 = 1012
-Unknown1013 = 1013
+Unknown1012 = 1012 -- Possibly Caligo Raid Power Triggered
+IsJointChainDamaged = 1013
 
 GetTestDamageAnimID = 1100
 IsInvincibleDebugMode = 1101

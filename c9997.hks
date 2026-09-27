@@ -16,6 +16,8 @@
 --				- Added names for some missed act calls
 --				- Added comments to ExecDamage related to ElementalDamageCount
 --				- Fixed a vanilla issue where stunning certain enemies with ultimates/extra large attacks caused them to continue their attack combos
+-- 2026-09-27 - El Fonz0:
+--				- Updated env names
 ------------------------------------------
 
 ------------------------------------------
@@ -1762,10 +1764,10 @@ function IsDead()
     if env(GetSpEffectID, 12510) == TRUE and env(HasReceivedAnyDamage) == TRUE and env(GetSpEffectID, 14717) == FALSE then
         return TRUE
     end
-    if env(GetSpEffectID, 12510) == TRUE and env(Unknown397) == TRUE then
+    if env(GetSpEffectID, 12510) == TRUE and env(IsRestageDamaged) == TRUE then
         return TRUE
     end
-    if env(GetSpEffectID, 12510) == TRUE and env(Unknown1013) == TRUE then
+    if env(GetSpEffectID, 12510) == TRUE and env(IsJointChainDamaged) == TRUE then
         return TRUE
     end
     if env(GetSpEffectID, 42258) == TRUE and env(GetSpEffectID, 42255) == TRUE and env(HasReceivedAnyDamage) == TRUE then
@@ -2086,7 +2088,7 @@ function ExecDeath()
 end
 
 function IsDirectDeath()
-    if env(IsMultiplayer) == FALSE and (env(Unknown389) == 0 or env(Unknown389) == 2 or env(Unknown389) == 3) then
+    if env(IsMultiplayer) == FALSE and (env(GetGameMode) == 0 or env(GetGameMode) == 2 or env(GetGameMode) == 3) then
         if env(GetSpEffectID, 102120) == TRUE then
             if env(GetSpEffectID, 540155) == FALSE and env(GetSpEffectID, 6999100) == FALSE and env(GetSpEffectID, 6999500) == FALSE and env(GetSpEffectID, 8970061) == FALSE then
                 return TRUE
@@ -3152,7 +3154,7 @@ function ExecSaBreakDamage(damage_level, is_damaged)
         act(AddSpEffect, 46366)
         Fire("W_DamageSpecial")
         return TRUE
-    elseif env(Unknown393) == TRUE then
+    elseif env(HasBrokenSubSA) == TRUE then
         if env(GetSpEffectID, 46401) == TRUE then
             SetVariable("IndexDamageDirection", 2)
             act(SetKnockbackFlag, DAMAGE_FLAG_LARGE)
@@ -5312,7 +5314,7 @@ function ExecDamage(is_weak, ignore_guard_block)
 	  and env(GetStatusEffectProc, STATUS_EFFECT_BLOODLOSS) == FALSE 
 	  and env(GetStatusEffectProc, STATUS_EFFECT_FROSTBITE) == FALSE 
 	  and env(GetStatusEffectProc, STATUS_EFFECT_MADNESS) == FALSE 
-	  and env(Unknown390) == FALSE 
+	  and env(HasDeflectBrokenSA) == FALSE 
 	  and (env(GetStatusEffectProc, STATUS_EFFECT_POISON) == FALSE or env(GetSpEffectID, 42175) == FALSE) then
         return FALSE
     end
@@ -14795,15 +14797,16 @@ HasMountBrokenSA = 385 -- speculation
 GetDemonBeastHP = 386
 GetDemonBeastUltimatePercent = 387
 GetMarkingDamageID = 388
-Unknown389 = 389
-Unknown390 = 390
+GetGameMode = 389
+HasDeflectBrokenSA = 390
 IsCheatDeathTriggered = 391
 GetCheatDeathAtkDirection = 392
-Unknown393 = 393
+HasBrokenSubSA = 393
 GetBirdMovementDirectionTime = 394 -- args: <unknown>
 GetBirdActionID = 395
 GetMountMarkingDamageID = 396 -- speculation
-Unknown397 = 397
+IsRestageDamaged = 397
+GetTrueDamageLevel = 398 -- like GetDamageLevel but ignores damage level change effects
 GetElementalDamageCounter = 399
 
 GetPoise = 400
@@ -14825,7 +14828,7 @@ GetEnhancedTranceAtkDirection = 422
 GetBlinkStakeUnknown = 423
 GetBlinkStakeDistance = 424
 IsBlinkStakeCollide = 425
-Unknown426 = 426
+IsDamageNullifyTriggered = 426
 
 IsOnMount = 500
 IsMount = 502
@@ -14883,7 +14886,7 @@ IsAIChangeToAwareState = 1009
 GetAITargetAwareStatePreviousFrame = 1010
 GetFlaskCount = 1011
 Unknown1012 = 1012
-Unknown1013 = 1013
+IsJointChainDamaged = 1013
 
 GetTestDamageAnimID = 1100
 IsInvincibleDebugMode = 1101
